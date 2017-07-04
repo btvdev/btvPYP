@@ -15,7 +15,7 @@ import com.btvpyp.utils.Commons;
 import com.btvpyp.utils.ImportExcelUtil;
 import com.btvpyp.utils.TimeUtil;
 /**
- * 定时任务类
+ * 播返单定时任务类
  * @author gaobo
  *
  */
