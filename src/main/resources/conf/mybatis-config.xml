@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration 
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+        <!-- 命名空间 -->
+    <typeAliases>
+         <typeAlias alias="tabUser" type="com.btvpyp.model.TabUser"/>
+         <typeAlias alias="tabSample" type="com.btvpyp.model.TabSample"/>
+         <typeAlias alias="tabSampleMatch" type="com.btvpyp.model.TabSampleMatch"/>
+         <typeAlias alias="tabAdvTypes" type="com.btvpyp.model.TabAdvTypes"/>
+         <typeAlias alias="tabOperLog" type="com.btvpyp.model.TabOperLog"/>
+         <typeAlias alias="tabBroadBack" type="com.btvpyp.model.TabBroadBack"/>
+    </typeAliases>
+ 
+    <!-- 映射map -->
+    <mappers>
+    	
+    </mappers>
+</configuration>

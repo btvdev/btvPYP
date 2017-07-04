@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.btvpyp.dao.TabBroadBackDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabBroadBack" >
+    	<id column="broadBackId" property="broadBackId" jdbcType="INTEGER" />
+    	<result column="jmName" property="jmName" jdbcType="VARCHAR"/>
+    	<result column="starttime" property="starttime" jdbcType="VARCHAR"/>
+    	<result column="endtime" property="endtime" jdbcType="VARCHAR"/>
+    	<result column="length" property="length" jdbcType="INTEGER"/>
+    	<result column="channel" property="channel" jdbcType="VARCHAR"/>
+    	<result column="createTime" property="createTime" jdbcType="DATE"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+		broadBackId,jmName,starttime,endtime,length,channel,createTime
+    </sql>
+
+    <select id="selectTabBroadBacks" resultMap="BaseResultMap" parameterType="tabBroadBack">
+    	select <include refid="Base_Column_List" />
+    	from tabBroadBack
+    	where 1=1
+    	<if test="jmName !=null and jmName != ''">
+    		and jmName = #{jmName, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="channel !=null and channel != ''">
+    		and channel = #{channel, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="chooseDay !=null and chooseDay != ''">
+    		and starttime <![CDATA[ >= ]]> str_to_date(#{chooseDayS,jdbcType=VARCHAR},'%Y-%m-%d %T')
+    		and starttime <![CDATA[ <= ]]> str_to_date(#{chooseDayE,jdbcType=VARCHAR},'%Y-%m-%d %T')
+    	</if>
+    	order by starttime asc
+    </select>
+    
+    <insert id="insertTabBroadBack" parameterType="tabBroadBack">
+    	insert into tabBroadBack 
+    	(broadBackId,jmName,starttime,endtime,length,channel,createTime) 
+    	values
+    	(null, #{jmName, jdbcType=VARCHAR},#{starttime, jdbcType=VARCHAR},#{endtime, jdbcType=VARCHAR},
+    	#{length, jdbcType=INTEGER},#{channel, jdbcType=VARCHAR},#{createTime, jdbcType=DATE})
+    </insert>
+</mapper>
