@@ -276,7 +276,6 @@ http://maven.apache.org/maven-v4_0_0.xsd">
 		    <artifactId>standard</artifactId>
 		    <version>1.1.2</version>
 		</dependency>
-		
 	</dependencies>
 	<build> 
 		<finalName>btvPYP</finalName>
