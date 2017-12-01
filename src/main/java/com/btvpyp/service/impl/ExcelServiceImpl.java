@@ -114,15 +114,26 @@ public class ExcelServiceImpl implements ExcelService {
 	             String timeE = tsm.getEndTime();
 	             Timestamp te = new Timestamp(Long.parseLong("0" + timeE));      
 	             String endTime = sdf.format(te);
-	             cell.setCellValue(endTime);//结束时间
+	             cell.setCellValue("0" + endTime);//结束时间
 	             
 	             cell = bodyRow.createCell(3);  
 	             cell.setCellStyle(bodyStyle);
-	             cell.setCellValue(tsm.getJiNum());//集数
+	             Integer js = tsm.getJiNum();
+	             if(null == js){
+	            	 cell.setCellValue("");//集数
+	             }else{
+	            	 cell.setCellValue(js);	 
+	             }
+	             
 	             
 	             cell = bodyRow.createCell(4);  
 	             cell.setCellStyle(bodyStyle);
-	             cell.setCellValue(tsm.getLength());//长度
+	             Integer cd = tsm.getLength();
+	             if(null == cd){
+	            	 cell.setCellValue("");//长度
+	             }else{
+	            	 cell.setCellValue(cd);//长度
+	             }
 	             
 	             cell = bodyRow.createCell(5);  
 	             cell.setCellStyle(bodyStyle);
@@ -150,7 +161,13 @@ public class ExcelServiceImpl implements ExcelService {
 	             
 	             cell = bodyRow.createCell(11);  
 	             cell.setCellStyle(bodyStyle);
-	             cell.setCellValue(tsm.getTapeNum());//磁带号
+	             String cdh = tsm.getTapeNum();
+	             if(null == cdh){
+	            	 cell.setCellValue("");//磁带号
+	             }else{
+	            	 cell.setCellValue(cdh);//磁带号
+	             }
+	             
 	             
 	             cell = bodyRow.createCell(12);  
 	             cell.setCellStyle(bodyStyle);

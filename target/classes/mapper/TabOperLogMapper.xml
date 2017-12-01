@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.btvpyp.dao.TabOperLogDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabOperLog" >
+    	<id column="operLogId" property="operLogId" jdbcType="INTEGER" />
+    	<result column="operLogName" property="operLogName" jdbcType="VARCHAR"/>
+    	<result column="operUserName" property="operUserName" jdbcType="VARCHAR"/>
+    	<result column="operLogTime" property="operLogTime" jdbcType="DATE"/>
+    	<result column="objId" property="objId" jdbcType="VARCHAR"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+		operLogId,operLogName,operUserName,operLogTime,objId
+    </sql>
+
+    <select id="selectTabOperLogs" resultMap="BaseResultMap" parameterType="TabOperLog">
+    	select <include refid="Base_Column_List" />
+    	from TabOperLog
+    	where 1=1
+    	<if test="operLogName !=null and operLogName != ''">
+    		and operLogName = #{operLogName, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="operUserName !=null and operUserName != ''">
+    		and operUserName = #{operUserName, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="objId !=null and objId != ''">
+    		and objId = #{objId, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="start !=null and start != ''">
+    		and operLogTime <![CDATA[ >= ]]> str_to_date(#{start,jdbcType=VARCHAR},'%Y-%m-%d %T')
+    	</if>
+    	<if test="end !=null and end != ''">
+    		and operLogTime <![CDATA[ <= ]]> str_to_date(#{end,jdbcType=VARCHAR},'%Y-%m-%d %T')
+    	</if>
+    	order by operLogTime desc
+    	<if test="startIndex !=null and pageSize != null">
+    		limit #{startIndex, jdbcType=INTEGER}, #{pageSize, jdbcType=INTEGER}
+    	</if>
+    </select>
+    
+    <select id="getTotalCount" resultType="java.lang.Integer" parameterType="TabOperLog">
+    	select count(operLogId) 
+    	from TabOperLog
+    	where 1=1
+    	<if test="operLogName !=null and operLogName != ''">
+    		and operLogName = #{operLogName, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="operUserName !=null and operUserName != ''">
+    		and operUserName = #{operUserName, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="objId !=null and objId != ''">
+    		and objId = #{objId, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="start !=null and start != ''">
+    		and operLogTime <![CDATA[ >= ]]> str_to_date(#{start,jdbcType=VARCHAR},'%Y-%m-%d %T')
+    	</if>
+    	<if test="end !=null and end != ''">
+    		and operLogTime <![CDATA[ <= ]]> str_to_date(#{end,jdbcType=VARCHAR},'%Y-%m-%d %T')
+    	</if>
+    </select>
+    
+    <insert id="insertTabOperLog" parameterType="TabOperLog">
+    	insert into TabOperLog(operLogId,operLogName,operUserName,operLogTime,objId)
+    	values(null,#{operLogName, jdbcType=VARCHAR},#{operUserName, jdbcType=VARCHAR},
+    	#{operLogTime, jdbcType=VARCHAR},#{objId, jdbcType=VARCHAR})
+    </insert>
+</mapper>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.btvpyp.dao.TabBfdLoadDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabBfdLoad" >
+    	<id column="loaddate" property="loaddate" jdbcType="VARCHAR" />
+    	<result column="loadflag" property="loadflag" jdbcType="INTEGER" />
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+		loaddate,loadflag
+    </sql>
+    
+    <insert id="insertBfdLoad" parameterType="tabBfdLoad">
+    	insert into tabbfdload
+    	(loaddate,loadflag)
+    	values
+    	(#{loaddate, jdbcType=VARCHAR},#{loadflag, jdbcType=INTEGER})
+    </insert>
+
+	<update id="updateBfdLoad" parameterType="tabBfdLoad">
+		update tabbfdload
+		<set>
+        	<if test="loadflag != null" >
+        		loadflag = #{loadflag, jdbcType=INTEGER}, 
+        	</if>
+        </set>
+        where loaddate=#{loaddate, jdbcType=VARCHAR}
+	</update>
+	
+    <select id="getBfdLoad" resultMap="BaseResultMap" parameterType="java.lang.String">
+    	select 
+    	<include refid="Base_Column_List" /> 
+    	from tabbfdload 
+    	where loaddate=#{loaddate,jdbcType=VARCHAR}
+    </select>
+    
+</mapper>

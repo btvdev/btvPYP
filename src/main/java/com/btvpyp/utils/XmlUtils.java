@@ -12,9 +12,9 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
 
-import com.btvpyp.model.FeedbackXmlBean;
-import com.btvpyp.model.MatchResultXmlBean;
-import com.btvpyp.model.PushDataXmlBean;
+import com.btvpyp.model.xml.FeedbackXmlBean;
+import com.btvpyp.model.xml.MatchResultXmlBean;
+import com.btvpyp.model.xml.PushDataXmlBean;
 
 public class XmlUtils {
 	//调用北大接口推送样本数据的接口XML日志

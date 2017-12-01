@@ -26,7 +26,4 @@ public interface TabSampleDao {
 	
 	public TabSample selectObjById(String sampleId);
 	
-	public TabSample selectObjBySampleCode(String sampleCode);
-	
-	
 }

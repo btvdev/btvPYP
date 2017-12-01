@@ -19,7 +19,7 @@
 	.w-f-nr .flo{ float:left;}
 	.w-f-nr .chech{ width:710px;}
 	.w-con table{border-collapse:collapse; width:100%; margin-top:10px;}
-	.w-con table, .w-con td,.w-con th{border:1px solid #a40701; text-align:center; padding:5px 0px; font-size:17px;}
+	.w-con table, .w-con td,.w-con th{border:1px solid #808080; text-align:center; padding:5px 0px; font-size:17px;}
 	.w-con tbody td{font-size:14px;}
 	.w-con .ym{ float:right; margin-top:8px;}
 	.w-con .ym span{ padding:0px 13px; cursor:pointer;}
@@ -29,7 +29,7 @@
 <script src="<%=request.getContextPath()%>/resources/js/jquery-1.7.2.min.js"></script>
 </head>
 <body>
-	<div class="w-con clearfix" style="overflow-x:auto;overflow-y:auto;">
+	<div class="w-con clearfix" style="overflow-x:auto;overflow-y:auto;height:950px;">
 	<ul>
 	<form action="" id="searchForm" method="post">
 		<div style="height:80px;width:870px;float:left;">

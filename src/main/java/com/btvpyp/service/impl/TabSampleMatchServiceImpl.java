@@ -47,7 +47,7 @@ public class TabSampleMatchServiceImpl implements TabSampleMatchService{
 		return sampleMatchId;
 	}
 	
-	//由于北大匹配精度不够，临时处理办法
+	//由于北大匹配精度不够，临时处理办法(暂时不启用，作为预案)
 	public TabSampleMatch change(TabSampleMatch tabSampleMatch, int sampleMatchId){
 		int preId = sampleMatchId -1;//前一条记录的id
 		String sampleId = tabSampleMatch.getSampleId();//该条流水对应的样本id
@@ -63,7 +63,7 @@ public class TabSampleMatchServiceImpl implements TabSampleMatchService{
 
 	@Override
 	public Integer updateTabSampleMatch(TabSampleMatch tabSampleMatch) {
-		return null;
+		return tabSampleMatchDao.updateTabSampleMatch(tabSampleMatch);
 	}
 
 	@Override

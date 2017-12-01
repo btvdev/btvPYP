@@ -33,6 +33,7 @@ public class TabOperLogController {
 		List<TabOperLog> operLogList = tabOperLogService.selectTabOperLogs(t);
 		model.addAttribute("operLogList", operLogList);
 		model.addAttribute("page", page);
+		model.addAttribute("totalCount", totalCount);
 		
 		return "pyp/operLogList";
 	}
@@ -68,6 +69,7 @@ public class TabOperLogController {
 		model.addAttribute("end", end);
 		model.addAttribute("objId", objId);
 		model.addAttribute("operLogName", operLogName);
+		model.addAttribute("totalCount", totalCount);
 		
 		return "pyp/operLogList";
 	}

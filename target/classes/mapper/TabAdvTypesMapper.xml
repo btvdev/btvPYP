@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.btvpyp.dao.TabAdvTypesDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabAdvTypes" >
+    	<id column="typeId" property="typeId" jdbcType="INTEGER" />
+    	<result column="typeName" property="typeName" jdbcType="VARCHAR" />
+    	<result column="level" property="level" jdbcType="INTEGER" />
+    	<result column="fatherId" property="fatherId" jdbcType="INTEGER" />
+    	<result column="status" property="status" jdbcType="INTEGER" />
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+		typeId,typeName,level,fatherId,status
+    </sql>
+
+    <select id="selectAdvTypes" resultMap="BaseResultMap" parameterType="tabAdvTypes">
+    	select 
+    	<include refid="Base_Column_List" /> 
+    	from tabAdvTypes
+    	where 1=1
+    	<if test="level !=null">
+    		and level = #{level, jdbcType=INTEGER}
+    	</if>
+    	<if test="typeName !=null and typeName != ''">
+    		and typeName = #{typeName, jdbcType=VARCHAR}
+    	</if>
+    	<if test="fatherId !=null">
+    		and fatherId = #{fatherId, jdbcType=INTEGER}
+    	</if>
+    	and status=1
+    </select>
+    
+    <select id="selectObjById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+    	select 
+    	<include refid="Base_Column_List" />
+    	from tabAdvTypes
+    	where typeId = #{typeId, jdbcType=INTEGER}
+    </select>
+    
+    <select id="selectByLevel" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+    	select 
+    	<include refid="Base_Column_List" />
+    	from tabAdvTypes
+    	where level = #{level, jdbcType=INTEGER} 
+    	and status=1
+    </select>
+    
+    <insert id="insertTabAdvTypes" parameterType="tabAdvTypes">
+    	insert into tabAdvTypes
+    	(typeId,typeName,level,fatherId,status) values
+		(null,#{typeName, jdbcType=VARCHAR},#{level, jdbcType=INTEGER},#{fatherId, jdbcType=INTEGER},1)
+    </insert>
+    
+    <update id="deleteTabAdvTypes" parameterType="tabAdvTypes">
+        update tabAdvTypes
+        <set>
+            status = 0
+        </set>
+        where typeId = #{typeId,jdbcType=INTEGER}
+    </update>
+    
+    <update id="updateTabAdvTypes" parameterType="tabAdvTypes">
+        update tabAdvTypes
+        <set>
+            <if test="typeName != null and typeName != ''" >
+                typeName = #{typeName,jdbcType=VARCHAR},
+            </if>
+            <if test="level != null" >
+                level = #{level,jdbcType=INTEGER},
+            </if>
+            <if test="fatherId != null" >
+                fatherId = #{fatherId,jdbcType=INTEGER},
+            </if>
+        </set>
+        where typeId = #{typeId,jdbcType=INTEGER}
+    </update>
+</mapper>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.btvpyp.dao.TabMenuDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabMenu">
+    	<id column="menuId" property="menuId" jdbcType="INTEGER"/>
+    	<result column="menuName" property="menuName" jdbcType="VARCHAR"/>
+    	<result column="menuLink" property="menuLink" jdbcType="VARCHAR"/>
+    	<result column="menuLevel" property="menuLevel" jdbcType="INTEGER"/>
+    	<result column="fatherId" property="fatherId" jdbcType="INTEGER"/>
+    	<result column="deleteFlg" property="deleteFlg" jdbcType="INTEGER"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+		menuId,menuName,menuLink,menuLevel,fatherId,deleteFlg
+    </sql>
+	
+	<insert id="insertMenu" parameterType="tabMenu">
+		insert into tabMenu
+		(menuId,menuName,menuLink,menuLevel,fatherId,deleteFlg) values
+		(null,#{menuName, jdbcType=VARCHAR},#{menuLink, jdbcType=VARCHAR},
+		#{menuLevel, jdbcType=INTEGER},#{fatherId, jdbcType=INTEGER},0)
+	</insert>
+    
+    <update id="deleteMenu" parameterType="java.lang.Integer">
+    	update tabMenu
+    	set deleteFlg=1 
+    	where menuId=#{menuId, jdbcType=INTEGER}
+    </update>
+    
+    <update id="updateMenu" parameterType="tabMenu">
+    	update tabMenu
+        <set>
+        	<if test="menuName != null and menuName != ''" >
+        		menuName = #{menuName, jdbcType=VARCHAR},
+        	</if>
+        	<if test="menuLink != null and menuLink != ''" >
+        		menuLink = #{menuLink, jdbcType=VARCHAR},
+        	</if>
+        	<if test="menuLink != null">
+        		menuLevel = #{menuLevel, jdbcType=VARCHAR},
+        	</if>
+        	<if test="fatherId != null">
+        		fatherId = #{fatherId, jdbcType=VARCHAR},
+        	</if>
+        </set>
+        where menuId = #{menuId, jdbcType=INTEGER}
+    </update>
+    
+    <select id="getMenuById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+    	select 
+    	<include refid="Base_Column_List" />
+    	from tabMenu
+    	where menuId = #{menuId, jdbcType=INTEGER}
+    </select>
+    
+    <select id="getMenusByLevel" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+    	select <include refid="Base_Column_List" />
+    	from tabMenu
+    	where menuLevel = #{menuLevel, jdbcType=INTEGER}
+    </select>
+    
+    <select id="getMenus" resultMap="BaseResultMap" parameterType="tabMenu">
+    	select <include refid="Base_Column_List" />
+    	from tabMenu
+    	where 1=1
+    	<if test="menuName !=null and menuName != ''">
+    		and menuName = #{menuName, jdbcType=VARCHAR}
+    	</if>
+    	<if test="menuLink !=null and menuLink != ''">
+    		and menuLink = #{menuLink, jdbcType=VARCHAR}
+    	</if>
+    	<if test="menuLevel !=null">
+    		and menuLevel = #{menuLevel, jdbcType=INTEGER}
+    	</if>
+    	<if test="fatherId !=null">
+    		and fatherId = #{fatherId, jdbcType=INTEGER}
+    	</if>
+    		and deleteFlg = 0
+    		order by menuLevel 
+    </select>
+    <select id="getByIds" resultMap="BaseResultMap" parameterType="java.util.List">
+    	select <include refid="Base_Column_List" />
+    	from tabMenu
+    	where menuId in
+    	<foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </select>
+</mapper>

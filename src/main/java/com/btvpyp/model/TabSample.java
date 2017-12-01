@@ -13,9 +13,6 @@ public class TabSample implements Serializable{
 	
 	private String sampleId;      //主键，即样本代码
 	private Integer flag;         //标志
-	private String sampleCode;    //节目代码   (暂时弃用的字段)
-	private String startTime;     //开始时间(时间戳)
-	private String endTime;		  //结束时间(时间戳)
 	private Integer jiNum;        //集数
 	private Integer length;       //长度
 	private String location;      //播出位置
@@ -39,6 +36,7 @@ public class TabSample implements Serializable{
 	private String tinyType;      //广告分类(小)
 	private Integer isAdv;        //是否为广告(传文件的为广告样本，否则反之)
 	private String fileNetAddr;   //文件外网链接地址
+	private Integer matchAgain;   //是否需要识别平台做二次匹配 1.是0.否
 	               
 	
 	//冗余字段
@@ -59,12 +57,6 @@ public class TabSample implements Serializable{
 	}
 	public void setFlag(Integer flag) {
 		this.flag = flag;
-	}
-	public String getSampleCode() {
-		return sampleCode;
-	}
-	public void setSampleCode(String sampleCode) {
-		this.sampleCode = sampleCode;
 	}
 	public Integer getJiNum() {
 		return jiNum;
@@ -222,18 +214,6 @@ public class TabSample implements Serializable{
 	public void setIsAdv(Integer isAdv) {
 		this.isAdv = isAdv;
 	}
-	public String getStartTime() {
-		return startTime;
-	}
-	public void setStartTime(String startTime) {
-		this.startTime = startTime;
-	}
-	public String getEndTime() {
-		return endTime;
-	}
-	public void setEndTime(String endTime) {
-		this.endTime = endTime;
-	}
 	public String getFileNetAddr() {
 		return fileNetAddr;
 	}
@@ -245,6 +225,12 @@ public class TabSample implements Serializable{
 	}
 	public void setSaveJs(String saveJs) {
 		this.saveJs = saveJs;
+	}
+	public Integer getMatchAgain() {
+		return matchAgain;
+	}
+	public void setMatchAgain(Integer matchAgain) {
+		this.matchAgain = matchAgain;
 	}
 	
 }

@@ -15,6 +15,7 @@ public class TabUser implements Serializable{
 	private String password;
 	private String realName;
 	private Integer status;
+	private String menus;
 	
 	public Integer getUserId() {
 		return userId;
@@ -45,6 +46,12 @@ public class TabUser implements Serializable{
 	}
 	public void setRealName(String realName) {
 		this.realName = realName;
+	}
+	public String getMenus() {
+		return menus;
+	}
+	public void setMenus(String menus) {
+		this.menus = menus;
 	}
 	
 }

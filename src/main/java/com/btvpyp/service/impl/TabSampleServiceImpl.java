@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.btvpyp.dao.TabAdvTypesDao;
 import com.btvpyp.dao.TabSampleDao;
-import com.btvpyp.model.PushDataXmlBean;
+import com.btvpyp.model.xml.PushDataXmlBean;
 import com.btvpyp.model.ReturnBean;
 import com.btvpyp.model.TabAdvTypes;
 import com.btvpyp.model.TabSample;
@@ -38,8 +38,6 @@ public class TabSampleServiceImpl implements TabSampleService {
 	@Autowired
 	public TabAdvTypesDao tabAdvTypesDao;
 	
-	
-	
 	@Override
 	public List<TabSample> selectTabSamples(TabSample tabSample) {
 		return tabSampleDao.selectTabSamples(tabSample);
@@ -47,8 +45,6 @@ public class TabSampleServiceImpl implements TabSampleService {
 	
 	@Override
 	public String insertTabSample(TabSample tabSample) {
-		String sampleId = KeyGen.getADVId();
-		tabSample.setSampleId(sampleId);
 		Integer re = tabSampleDao.insertTabSample(tabSample);
 		
 //		re = 0;//接口联调前暂时不要注释这一行，彻底走接口后该行需要注释掉！
@@ -56,7 +52,7 @@ public class TabSampleServiceImpl implements TabSampleService {
 			//生成TabSamplePush对象,调用北大推送接口
 			push(tabSample);
 		}
-		return sampleId;
+		return tabSample.getSampleId();
 	}
 	
 	//从Excel导入数据的插入记录方法
@@ -68,14 +64,21 @@ public class TabSampleServiceImpl implements TabSampleService {
 		
 		String fileLoc = tabSample.getFileAddr();
 		File file = new File(fileLoc);
+		String fileMainName = tabSample.getMainName();
+		fileMainName = fileMainName.replaceAll("$", "");//去掉特殊符号
 		if(file.exists()){ //如果文件存在，则进行文件名更改
-			String newFileName = tabSample.getSampleId() + ".mp4";
+			String newFileName = tabSample.getSampleId() + "_" + fileMainName + ".mp4";
 			String newPath = FileUtils.modifyFileName(tabSample.getFileAddr(), newFileName);
 			String newNetAddr = tabSample.getFileNetAddr() + newFileName;
+			tabSample.setFileAddr(newPath);
+			tabSample.setFileNetAddr(newNetAddr);
 //			System.out.println(newPath);
 		}
 		
 		Integer re = tabSampleDao.insertTabSample(tabSample);
+		
+		re = 0;
+				
 		if(re == 1){ 
 			//生成TabSamplePush对象,调用北大推送接口
 			push(tabSample);
@@ -111,20 +114,26 @@ public class TabSampleServiceImpl implements TabSampleService {
 	public int push(TabSample tabSample){
 		int pushResult = 0;
 		
-		//sampleName 和 uri需要base64编码
 		TabSamplePush tsp = new TabSamplePush();
 		tsp.setSampleid(tabSample.getSampleId());
-		String sname = tabSample.getMainName();
-		byte[] bytes1 = sname.getBytes();
-		tsp.setSamplename(new String(Base64.encodeBase64(bytes1)));
 		tsp.setLength(tabSample.getLength());
+		tsp.setMatchAgain(tabSample.getMatchAgain());
+		
+		//接口约定：sampleName需要base64编码
+		String sname = tabSample.getMainName();
+		byte[] bytes_sname = sname.getBytes();
+		tsp.setSamplename(new String(Base64.encodeBase64(bytes_sname)));
+		
+		//接口约定：uri需要base64编码
 		String fileAddr = tabSample.getFileAddr();
-		byte[] bytes2 = fileAddr.getBytes();
-		tsp.setUri(new String(Base64.encodeBase64(bytes2)));
+		byte[] bytes_fileAddr = fileAddr.getBytes();
+		tsp.setUri(new String(Base64.encodeBase64(bytes_fileAddr)));
+		
 		TabAdvTypes tat = tabAdvTypesDao.selectObjById(Integer.parseInt(tabSample.getMiddleType()));
 		if(null != tat){
 			tsp.setCategory(tat.getTypeId());
 		}
+		
 		String rt = pushSampleData(tsp, tabSample.getSampleId());
 //		System.out.println("北大返回值：--------------------------"+rt);
 		ReturnBean rb = (ReturnBean)JSONObject.toBean(JSONObject.fromObject(rt), ReturnBean.class);
@@ -168,6 +177,7 @@ public class TabSampleServiceImpl implements TabSampleService {
 	        content += "uri=" + tsp.getUri() + "&";
 	        content += "category=" + tsp.getCategory() + "&";
 	        content += "length=" + tsp.getLength();
+	        content += "matchAgain=" + tsp.getMatchAgain();
 	        
 //	        System.out.println("推送内容：------------------"+content);
 	        out.writeBytes(content);
@@ -251,11 +261,6 @@ public class TabSampleServiceImpl implements TabSampleService {
 	@Override
 	public TabSample selectObjById(String sampleId) {
 		return tabSampleDao.selectObjById(sampleId);
-	}
-
-	@Override
-	public TabSample selectObjBySampleCode(String sampleCode) {
-		return tabSampleDao.selectObjBySampleCode(sampleCode);
 	}
 
 	@Override

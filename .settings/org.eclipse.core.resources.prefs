@@ -1,5 +1,6 @@
 eclipse.preferences.version=1
 encoding//src/main/resources/conf/jdbc.properties=UTF-8
-encoding//src/main/webapp/WEB-INF/jsp/pyp/login.jsp=UTF-8
-encoding//src/main/webapp/WEB-INF/jsp/pyp/main.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/jsp_bak/system/login.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/jsp_bak/system/main.jsp=UTF-8
+encoding//src/main/webapp/resources/css/base.css=UTF-8
 encoding/<project>=UTF-8

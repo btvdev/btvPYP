@@ -26,7 +26,5 @@ public interface TabSampleService {
 	
 	public TabSample selectObjById(String sampleId);
 	
-	public TabSample selectObjBySampleCode(String sampleCode);
-	
 	public void rePush(String sampleId);
 }

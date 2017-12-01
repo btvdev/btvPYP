@@ -19,7 +19,7 @@
 	.w-f-nr .flo{ float:left;}
 	.w-f-nr .chech{ width:710px;}
 	.w-con table{border-collapse:collapse; width:100%; margin-top:10px;}
-	.w-con table, .w-con td,.w-con th{border:1px solid #a40701; text-align:center; padding:5px 0px; font-size:17px;}
+	.w-con table, .w-con td,.w-con th{border:1px solid #808080; text-align:center; padding:5px 0px; font-size:17px;}
 	.w-con tbody td{font-size:14px;}
 	.w-con .ym{ float:right; margin-top:8px;}
 	.w-con .ym span{ padding:0px 13px; cursor:pointer;}
@@ -30,7 +30,7 @@
 </head>
 
 <body>
-	<div class="w-con clearfix" style="overflow-x:auto;overflow-y:auto;">
+	<div class="w-con clearfix" style="overflow-x:auto;overflow-y:auto;height:950px;">
 		<ul>
 			<form action="" id="searchForm" method="post">
 			<input type="hidden" name="currPage" id="currPage" value="${page.currPage }"/>
@@ -55,6 +55,9 @@
             		<option value="修改样本">修改样本</option>
             		<option value="样本重新推送">样本重新推送</option>
             		<option value="删除匹配流水单">删除匹配流水单</option>
+            		<option value="修改流水单">修改流水单</option>
+            		<option value="新增用户">新增用户</option>
+            		<option value="删除用户">删除用户</option>
             	</select>
             </li>
             
@@ -87,6 +90,7 @@
 				</tbody>
             </table>
             <div class="ym">
+            	<span>共${totalCount }条</span>
             	<span>共${page.pageNum }页</span>
             	<span>当前第${page.currPage }页</span>
             	<span><a href="javascript:;" onclick="prePage()">上一页</a></span>

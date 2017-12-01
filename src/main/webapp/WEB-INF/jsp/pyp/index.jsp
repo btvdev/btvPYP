@@ -5,7 +5,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title></title>
-<script src="<%=request.getContextPath()%>/resources/js/jquery-1.7.2.min.js"></script>
+<script src="<%=request.getContextPath()%>/resources/js/jquery-1.11.1min.js"></script>
 </head>
 <body onLoad="tologin()">
 	

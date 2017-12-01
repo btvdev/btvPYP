@@ -29,4 +29,14 @@ public class TabBroadBackServiceImpl implements TabBroadBackService {
 		return tabBroadBackDao.insertTabBroadBack(tabBroadBack);
 	}
 
+	@Override
+	public Integer batchRemove(List<String> idList) {
+		return tabBroadBackDao.batchRemove(idList);
+	}
+
+	@Override
+	public List<TabBroadBack> selectForGd(TabBroadBack tabBroadBack) {
+		return tabBroadBackDao.selectForGd(tabBroadBack);
+	}
+
 }

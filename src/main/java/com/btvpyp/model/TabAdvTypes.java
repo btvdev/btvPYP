@@ -1,7 +1,11 @@
 package com.btvpyp.model;
 
 import java.io.Serializable;
-
+/**
+ * 广告分类
+ * @author gaobo
+ *
+ */
 public class TabAdvTypes implements Serializable{
 
 	private static final long serialVersionUID = -8415014915504569466L;

@@ -1,0 +1,71 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"
+    pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/style.css">
+<script src="<%=request.getContextPath()%>/resources/js/jquery-1.7.2.min.js"></script>
+<style>
+ul li{
+	list-style-type:none;
+}
+
+</style>
+</head>
+<body>
+	<div class="rightbox">
+		<form action="" id="addForm" method="post">
+			<div style="height:80px;width:870px;float:left;">
+				<div>
+					<ul>
+						<li>
+							用户名:
+							<input type="text" id="userName" name="userName" /></br></br>
+							登录密码:
+							<input type="text" id="password" name="password" /></br></br>
+							真实姓名：
+							<input type="text" id="realName" name="realName" /></br></br>
+						</li>
+						<li id="menusLi">
+							分配菜单权限:</br>
+							<c:forEach items="${menuList}" var="p">
+								<input type="checkbox" style="width:8px;height:5px;" alt="${p.menuId }" />${p.menuName }		
+							</c:forEach>
+						</li>
+					</ul>
+				</div>
+				<div>
+					<input type="button" value="保存" onclick="save()">
+				</div>
+			</div>
+			<input type="hidden" id="menus" name="menus" />
+		</form>
+	</div>
+<script language="javascript">
+    function save(){
+    	var userName = $("#userName").val();
+    	var password = $("#password").val();
+    	var menuIds = "";
+    	if(userName == ''){
+    		alert("用户名不能为空");
+    		return false;
+    	}
+    	if(password == ''){
+    		alert("密码不能为空");
+    		return false;
+    	}
+    	$("input:checkbox:checked").each(function(){
+    		var menuId = $(this).attr("alt");
+    		menuIds += menuId + ",";
+    	});
+    	$("#menus").val(menuIds);
+    	$("#addForm").attr("action", "<%=request.getContextPath()%>/tabUser/add");
+    	$("#addForm").submit();
+    }
+    
+</script>
+</body>
+</html>
