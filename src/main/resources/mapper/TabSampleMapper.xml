@@ -2,8 +2,8 @@
 <!DOCTYPE mapper
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.btvpyp.dao.TabSampleDao">
-	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabSample" >
+<mapper namespace="com.btvpyp.sample.dao.TabSampleDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.sample.model.TabSample" >
     	<id column="sampleId" property="sampleId" jdbcType="VARCHAR" />
     	<result column="flag" property="flag" jdbcType="INTEGER" />
     	<result column="jiNum" property="jiNum" jdbcType="INTEGER" />
@@ -29,23 +29,44 @@
     	<result column="tinyType" property="tinyType" jdbcType="VARCHAR" />
     	<result column="isAdv" property="isAdv" jdbcType="INTEGER" />
     	<result column="fileNetAddr" property="fileNetAddr" jdbcType="VARCHAR" />
+    	<result column="matchAgain" property="matchAgain" jdbcType="INTEGER" />
+    	<result column="clarity" property="clarity" jdbcType="INTEGER" />
+    	<result column="original" property="original" jdbcType="INTEGER" />
+    	<result column="brandId" property="brandId" jdbcType="INTEGER" />
+    	<result column="firstDate" property="firstDate" jdbcType="VARCHAR" />
+    	<result column="firstTime" property="firstTime" jdbcType="VARCHAR" />
     	
     </resultMap>
     
     <sql id="Base_Column_List" >
 		sampleId,flag,jiNum,length,location,comments,sampleDate,pid,mainName,secondName,tapeNum,
 		columnType,advId,createrName,createTime,lastModifier,lastModifyTime,company,
-		fileAddr,extFlag,largeType,middleType,tinyType,isAdv,fileNetAddr
+		fileAddr,extFlag,largeType,middleType,tinyType,isAdv,fileNetAddr,matchAgain,
+		clarity,original,brandId,firstDate,firstTime
     </sql>
-
+    
+    <select id="selectByDimName" resultMap="BaseResultMap" parameterType="java.lang.String">
+    	select sampleId,mainName,secondName,length,columnType from tabSample
+    	where mainName like CONCAT('%', #{mainName}, '%') 
+    	and flag=1 
+    	order by brandId desc
+    </select>
+    
+    <select id="selectOneNameById" resultType="java.lang.String" parameterType="java.lang.String">
+    	select mainName from tabSample
+    	where sampleId = #{sampleId, jdbcType=VARCHAR} 
+    </select>
+    <select id="selectMaxBrandId" resultType="java.lang.Integer">
+    	 select MAX(brandId) from tabsample
+    </select>
     <select id="selectTabSamples" resultMap="BaseResultMap" parameterType="tabSample">
     	select 
     	<include refid="Base_Column_List" /> 
     	from tabSample
     	where 1=1
-    	<if test="isAdv !=null">
-    		and isAdv = #{isAdv, jdbcType=INTEGER}
-    	</if>
+<!--     	<if test="isAdv !=null"> -->
+<!--     		and isAdv = #{isAdv, jdbcType=INTEGER} -->
+<!--     	</if> -->
     	<if test="pid !=null and pid != ''">
     		and pid = #{pid, jdbcType=VARCHAR}
     	</if>
@@ -58,9 +79,23 @@
     	<if test="createrName !=null and createrName != ''">
     		and createrName = #{createrName, jdbcType=VARCHAR}
     	</if>
-    	<if test="mainName !=null and mainName != ''">
-    		and mainName = #{mainName, jdbcType=VARCHAR}
+    	<if test="columnType !=null and columnType != ''">
+    		and columnType = #{columnType, jdbcType=VARCHAR}
     	</if>
+    	<if test="mainName !=null and mainName != ''">
+    		and mainName like CONCAT('%', #{mainName}, '%') 
+    	</if>
+    	<if test="secondName !=null and secondName != ''">
+    		and secondName like CONCAT('%', #{secondName}, '%') 
+    	</if>
+    	<choose>
+    		<when test = "brandId != null and brandId ==-1">	
+    			and brandId is null
+    		</when>
+    		<when test = "brandId != null and brandId != null">
+    			and brandId = #{brandId, jdbcType=INTEGER}
+    		</when>
+    	</choose>
     	and flag=1 
     	order by createTime desc
     	<if test="startIndex !=null and pageSize != null">
@@ -86,10 +121,11 @@
     		and createrName = #{createrName, jdbcType=VARCHAR}
     	</if>
     	<if test="mainName !=null and mainName != ''">
-    		and mainName = #{mainName, jdbcType=VARCHAR}
+    		and mainName like CONCAT('%', #{mainName}, '%')
     	</if>
     	and flag=1 
     	and extFlag in (0,2) 
+    	and columnType !='jm'
     	order by createTime desc
     	<if test="startIndex !=null and pageSize != null">
     		limit #{startIndex, jdbcType=INTEGER}, #{pageSize, jdbcType=INTEGER}
@@ -111,6 +147,20 @@
     	<if test="createrName !=null and createrName != ''">
     		and createrName = #{createrName, jdbcType=VARCHAR}
     	</if>
+    	<if test="columnType !=null and columnType != ''">
+    		and columnType = #{columnType, jdbcType=VARCHAR}
+    	</if>
+    	<if test="mainName !=null and mainName != ''">
+    		and mainName like CONCAT('%', #{mainName}, '%') 
+    	</if>
+    	<choose>
+    		<when test = "brandId != null and brandId ==-1">	
+    			and brandId is null
+    		</when>
+    		<when test = "brandId != null and brandId != null">
+    			and brandId = #{brandId, jdbcType=INTEGER}
+    		</when>
+    	</choose>
     	and flag=1 
     </select>
     
@@ -129,8 +179,12 @@
     	<if test="createrName !=null and createrName != ''">
     		and createrName = #{createrName, jdbcType=VARCHAR}
     	</if>
+    	<if test="mainName !=null and mainName != ''">
+    		and mainName like CONCAT('%', #{mainName}, '%')
+    	</if>
     	and flag=1 
-    	and extFlag in (0,2)
+    	and extFlag in (0,2) 
+    	and columnType !='jm'
     </select>
     
     <select id="findByIds" resultMap="BaseResultMap">
@@ -153,14 +207,21 @@
     <insert id="insertTabSample" parameterType="tabSample">
     	insert into tabSample
     	(sampleId,flag,jiNum,length,location,comments,sampleDate,pid,mainName,
-		secondName,tapeNum,columnType,advId,createrName,createTime,lastModifier,lastModifyTime,company,fileAddr,extFlag
-		,largeType,middleType,tinyType,isAdv,fileNetAddr) 
+		secondName,tapeNum,columnType,advId,createrName,createTime,lastModifier,lastModifyTime,company,
+		fileAddr,extFlag,largeType,middleType,tinyType,isAdv,fileNetAddr,matchAgain,clarity,original,
+		brandId,firstDate,firstTime) 
 		values
-		(#{sampleId,jdbcType=VARCHAR},#{flag,jdbcType=INTEGER},#{jiNum,jdbcType=INTEGER},#{length,jdbcType=INTEGER},
-		#{location,jdbcType=VARCHAR},#{comments,jdbcType=VARCHAR},#{sampleDate,jdbcType=VARCHAR},#{pid,jdbcType=VARCHAR},#{mainName,jdbcType=VARCHAR},
-		#{secondName,jdbcType=VARCHAR},#{tapeNum,jdbcType=VARCHAR},#{columnType,jdbcType=VARCHAR},#{advId,jdbcType=VARCHAR},#{createrName,jdbcType=VARCHAR},
-		#{createTime,jdbcType=DATE},#{lastModifier,jdbcType=VARCHAR},#{lastModifyTime,jdbcType=DATE},#{company,jdbcType=VARCHAR},#{fileAddr,jdbcType=VARCHAR},
-		#{extFlag,jdbcType=INTEGER},#{largeType,jdbcType=VARCHAR},#{middleType,jdbcType=VARCHAR},#{tinyType,jdbcType=VARCHAR},#{isAdv,jdbcType=INTEGER},#{fileNetAddr,jdbcType=VARCHAR})
+		(#{sampleId,jdbcType=VARCHAR},#{flag,jdbcType=INTEGER},#{jiNum,jdbcType=INTEGER},
+		#{length,jdbcType=INTEGER},#{location,jdbcType=VARCHAR},#{comments,jdbcType=VARCHAR},
+		#{sampleDate,jdbcType=VARCHAR},#{pid,jdbcType=VARCHAR},#{mainName,jdbcType=VARCHAR},
+		#{secondName,jdbcType=VARCHAR},#{tapeNum,jdbcType=VARCHAR},#{columnType,jdbcType=VARCHAR},
+		#{advId,jdbcType=VARCHAR},#{createrName,jdbcType=VARCHAR},#{createTime,jdbcType=DATE},
+		#{lastModifier,jdbcType=VARCHAR},#{lastModifyTime,jdbcType=DATE},#{company,jdbcType=VARCHAR},
+		#{fileAddr,jdbcType=VARCHAR},#{extFlag,jdbcType=INTEGER},#{largeType,jdbcType=VARCHAR},
+		#{middleType,jdbcType=VARCHAR},#{tinyType,jdbcType=VARCHAR},#{isAdv,jdbcType=INTEGER},
+		#{fileNetAddr,jdbcType=VARCHAR},#{matchAgain,jdbcType=VARCHAR},#{clarity,jdbcType=VARCHAR},
+		#{original,jdbcType=VARCHAR},#{brandId,jdbcType=INTEGER},#{firstDate,jdbcType=VARCHAR},
+		#{firstTime,jdbcType=VARCHAR})
     </insert>
     
     <update id="deleteTabSample" parameterType="tabSample">
@@ -183,49 +244,52 @@
             <if test="length != null" >
                 length = #{length,jdbcType=INTEGER},
             </if>
-			<if test="location != null" >
+            <if test="length == null" >
+                length = 0,
+            </if>
+			<if test="location != null and location != ''" >
                 location = #{location,jdbcType=VARCHAR},
             </if>
-            <if test="comments != null" >
+            <if test="comments != null and location != ''" >
                 comments = #{comments,jdbcType=VARCHAR},
             </if>        
-            <if test="sampleDate != null" >
+            <if test="sampleDate != null and sampleDate != ''" >
                 sampleDate = #{sampleDate,jdbcType=VARCHAR},
             </if>
-            <if test="pid != null" >
+            <if test="pid != null and pid != ''" >
                 pid = #{pid,jdbcType=VARCHAR},
             </if>
-            <if test="mainName != null" >
+            <if test="mainName != null and mainName != ''" >
                 mainName = #{mainName,jdbcType=VARCHAR},
             </if>
-            <if test="secondName != null" >
+            <if test="secondName != null and secondName != ''" >
                 secondName = #{secondName,jdbcType=VARCHAR},
             </if> 
-            <if test="tapeNum != null" >
+            <if test="tapeNum != null and tapeNum != ''" >
                 tapeNum = #{tapeNum,jdbcType=VARCHAR},
             </if> 
-            <if test="columnType != null" >
+            <if test="columnType != null and columnType != ''" >
                 columnType = #{columnType,jdbcType=VARCHAR},
             </if>
-            <if test="advId != null" >
+            <if test="advId != null and advId != ''" >
                 advId = #{advId,jdbcType=VARCHAR},
             </if>
-            <if test="createrName != null" >
+            <if test="createrName != null and createrName != ''" >
                 createrName = #{createrName,jdbcType=VARCHAR},
             </if>
             <if test="createTime != null" >
                 createTime = #{createTime,jdbcType=DATE},
             </if>
-            <if test="lastModifier != null" >
+            <if test="lastModifier != null and lastModifier != ''" >
                 lastModifier = #{lastModifier,jdbcType=VARCHAR},
             </if>
             <if test="lastModifyTime != null" >
                 lastModifyTime = #{lastModifyTime,jdbcType=DATE},
             </if>
-            <if test="company != null" >
+            <if test="company != null and company != ''" >
                 company = #{company,jdbcType=VARCHAR},
             </if>
-            <if test="fileAddr != null" >
+            <if test="fileAddr != null and fileAddr != ''" >
                 fileAddr = #{fileAddr,jdbcType=VARCHAR},
             </if>
             <if test="extFlag != null" >
@@ -243,9 +307,19 @@
             <if test="isAdv != null" >
                 isAdv = #{isAdv,jdbcType=INTEGER},
             </if>
-            <if test="fileNetAddr != null" >
+            <if test="fileNetAddr != null and fileNetAddr != ''" >
                 fileNetAddr = #{fileNetAddr,jdbcType=VARCHAR},
             </if>
+            <if test="brandId != null" >
+                brandId = #{brandId,jdbcType=INTEGER},
+            </if>
+            <if test="firstDate != null and firstDate !=''">
+                firstDate = #{firstDate,jdbcType=VARCHAR},
+            </if>
+            <if test="firstTime != null and firstTime !=''">
+                firstTime = #{firstTime,jdbcType=VARCHAR},
+            </if>
+            
         </set>
         where sampleId = #{sampleId,jdbcType=VARCHAR}
     </update>

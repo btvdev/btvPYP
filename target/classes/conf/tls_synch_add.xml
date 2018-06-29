@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <soap:Body>
+    <addProgMsg xmlns="http://tempuri.org/">
+      <gg_idno></gg_idno>
+      <gg_name></gg_name>
+      <gg_subname></gg_subname>
+      <gg_date></gg_date>
+      <gg_type></gg_type>
+      <gg_def></gg_def>
+      <gg_len></gg_len>
+      <gg_script></gg_script>
+      <gg_froname></gg_froname>
+      <gg_tapeno></gg_tapeno>
+      <add_person></add_person>
+    </addProgMsg>
+  </soap:Body>
+</soap:Envelope>

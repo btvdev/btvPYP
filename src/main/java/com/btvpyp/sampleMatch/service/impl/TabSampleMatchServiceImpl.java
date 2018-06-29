@@ -1,0 +1,102 @@
+package com.btvpyp.sampleMatch.service.impl;
+
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.btvpyp.sample.dao.TabSampleDao;
+import com.btvpyp.sample.model.TabSample;
+import com.btvpyp.sampleMatch.dao.TabSampleMatchDao;
+import com.btvpyp.sampleMatch.model.TabSampleMatch;
+import com.btvpyp.sampleMatch.service.TabSampleMatchService;
+import com.btvpyp.utils.Commons;
+import com.btvpyp.utils.HttpClient;
+import com.btvpyp.utils.MathUtil;
+/**
+ * 样本匹配流水单服务层实现类
+ * @author gaobo
+ *
+ */
+@Service
+public class TabSampleMatchServiceImpl implements TabSampleMatchService{
+	@Autowired
+	public TabSampleMatchDao tabSampleMatchDao;
+	@Autowired
+	public TabSampleDao tabSampleDao;
+	@Override
+	public List<TabSampleMatch> selectTabSampleMatchs(
+			TabSampleMatch tabSampleMatch) {
+		return tabSampleMatchDao.selectTabSampleMatchs(tabSampleMatch);
+	}
+	
+	@Override
+	public Integer getTotalCount(TabSampleMatch tabSampleMatch) {
+		return tabSampleMatchDao.getTotalCount(tabSampleMatch);
+	}
+
+	@Override
+	public Integer insertTabSampleMatch(TabSampleMatch tabSampleMatch) {
+		int sampleMatchId = 0;
+		tabSampleMatch.setDeleteFlg(0);
+		//根据sampleId取出样本对象，按需要进行赋值
+		TabSample tabSample = new TabSample();
+		tabSample = tabSampleDao.selectObjById(tabSampleMatch.getSampleId());
+		tabSampleMatch.setMainName(tabSample.getMainName());
+		tabSampleMatch.setSecondName(tabSample.getSecondName());
+		if(null == tabSampleMatch.getJiNum()) {
+			tabSampleMatch.setJiNum(tabSample.getJiNum());
+		}
+		tabSampleMatch.setSampleDate(tabSample.getSampleDate());
+		tabSampleMatch.setTapeNum(tabSample.getTapeNum());
+		tabSampleMatch.setColumnType(tabSample.getColumnType());
+		tabSampleMatch.setIsAdv(1);    //1：广告样本 0：非广告
+		tabSampleMatch.setAdvId(tabSample.getAdvId());
+		tabSampleMatch.setBrandId(tabSample.getBrandId());
+		tabSampleMatch.setCreateTime(new Timestamp(new Date().getTime()));
+		//计算时长   ---start
+		String endTime = tabSampleMatch.getEndTime();
+		Long endTimeLong = Long.parseLong(endTime);
+		String startTime = tabSampleMatch.getStartTime();
+		Long startTimeLong = Long.parseLong(startTime);
+		Long timeLength = (endTimeLong / 1000 - startTimeLong / 1000) ;
+//		String length = MathUtil.divisionRound(timeLength, 1000d, "%.0f");
+		String length = timeLength.toString();
+		tabSampleMatch.setLength(Integer.parseInt(length));
+		//计算时长   ---end
+		
+		//入库
+		sampleMatchId = tabSampleMatchDao.insertTabSampleMatch(tabSampleMatch);
+		return sampleMatchId;
+	}
+	
+	@Override
+	public Integer updateTabSampleMatch(TabSampleMatch tabSampleMatch) {
+		return tabSampleMatchDao.updateTabSampleMatch(tabSampleMatch);
+	}
+
+	@Override
+	public Integer deleteTabSampleMatch(TabSampleMatch tabSampleMatch) {
+		int result = 0;
+		result = tabSampleMatchDao.deleteTabSampleMatch(tabSampleMatch);
+		return result;
+	}
+
+	@Override
+	public TabSampleMatch getOneById(Integer sampleMatchId) {
+		return tabSampleMatchDao.getOneById(sampleMatchId);
+	}
+
+	@Override
+	public List<TabSampleMatch> selectManuals(TabSampleMatch tabSampleMatch) {
+		return tabSampleMatchDao.selectManuals(tabSampleMatch);
+	}
+
+	@Override
+	public Integer selectTotalManuals(TabSampleMatch tabSampleMatch) {
+		return tabSampleMatchDao.selectTotalManuals(tabSampleMatch);
+	}
+
+}

@@ -2,8 +2,8 @@
 <!DOCTYPE mapper
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.btvpyp.dao.TabMenuDao">
-	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabMenu">
+<mapper namespace="com.btvpyp.system.dao.TabMenuDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.system.model.TabMenu">
     	<id column="menuId" property="menuId" jdbcType="INTEGER"/>
     	<result column="menuName" property="menuName" jdbcType="VARCHAR"/>
     	<result column="menuLink" property="menuLink" jdbcType="VARCHAR"/>
@@ -59,6 +59,7 @@
     	select <include refid="Base_Column_List" />
     	from tabMenu
     	where menuLevel = #{menuLevel, jdbcType=INTEGER}
+    	and deleteFlg = 0
     </select>
     
     <select id="getMenus" resultMap="BaseResultMap" parameterType="tabMenu">
@@ -87,5 +88,6 @@
     	<foreach item="item" index="index" collection="list" open="(" separator="," close=")">
     		#{item}
     	</foreach>
+    	and deleteFlg = 0
     </select>
 </mapper>

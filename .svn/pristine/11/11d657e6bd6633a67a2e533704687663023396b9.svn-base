@@ -1,0 +1,356 @@
+package com.btvpyp.sample.service.impl;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.apache.commons.net.util.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.btvpyp.advType.dao.TabAdvTypesDao;
+import com.btvpyp.advType.model.TabAdvTypes;
+import com.btvpyp.model.ReturnBean;
+import com.btvpyp.model.TabSamplePush;
+import com.btvpyp.model.xml.PushDataXmlBean;
+import com.btvpyp.sample.dao.TabSampleDao;
+import com.btvpyp.sample.model.FingerPush;
+import com.btvpyp.sample.model.FingerPushBack;
+import com.btvpyp.sample.model.TabSample;
+import com.btvpyp.sample.service.TabSampleService;
+import com.btvpyp.sampleMatch.dao.TabSampleMatchDao;
+import com.btvpyp.sampleMatch.model.TabSampleMatch;
+import com.btvpyp.utils.Commons;
+import com.btvpyp.utils.FileUtils;
+import com.btvpyp.utils.HttpClient;
+import com.btvpyp.utils.KeyGen;
+import com.btvpyp.utils.LogUtil;
+import com.btvpyp.utils.TimeUtil;
+import com.btvpyp.utils.XmlUtils;
+@Service
+public class TabSampleServiceImpl implements TabSampleService {
+	@Autowired
+	public TabSampleDao tabSampleDao;
+	@Autowired
+	public TabAdvTypesDao tabAdvTypesDao;
+	@Autowired
+	public TabSampleMatchDao tabSampleMatchDao;
+	
+	@Override
+	public List<TabSample> selectTabSamples(TabSample tabSample) {
+		return tabSampleDao.selectTabSamples(tabSample);
+	}
+	
+	@Override
+	public String insertTabSample(TabSample tabSample) {
+		Integer re = tabSampleDao.insertTabSample(tabSample);
+		
+		re = 0;//接口联调前暂时不要注释这一行，彻底走接口后该行需要注释掉！
+		if(re == 1){ 
+			//生成TabSamplePush对象,调用对方接口
+			push(tabSample);
+		}
+		return tabSample.getSampleId();
+	}
+	
+	//从Excel导入数据的插入记录方法
+	//先修改一下文件名，然后再进行推送
+	@Override
+	public String insertTabSampleFromExcel(TabSample tabSample) {
+		String sampleId = KeyGen.getADVId();
+		tabSample.setSampleId(sampleId);
+		String fileLoc = tabSample.getFileAddr();
+		File file = new File(fileLoc);
+		String fileMainName = tabSample.getMainName();
+		fileMainName = fileMainName.replaceAll("$", "");//去掉特殊符号
+		if(file.exists()){ //如果文件存在，则进行文件名更改
+			String newFileName = tabSample.getSampleId() + "_" + tabSample.getMainName() + ".mp4";
+			String newPath = FileUtils.modifyFileName(tabSample.getFileAddr(), newFileName);
+			String newNetAddr = tabSample.getFileNetAddr() + newFileName;
+			tabSample.setFileAddr(newPath);
+			tabSample.setFileNetAddr(newNetAddr);
+//			System.out.println(newPath);
+		}
+		Integer re = tabSampleDao.insertTabSample(tabSample);
+		
+		//数据从Excel导入后暂时不向识别接口直接推送
+		re = 0;
+		if(re == 1){ 
+			//生成TabSamplePush对象,调用对方接口
+			push(tabSample);
+		}
+		return sampleId;
+	}
+	
+	@Override
+	public void rePush(String sampleId) {
+		TabSample tabSample = tabSampleDao.selectObjById(sampleId);
+		push(tabSample);
+	}
+	
+	@Override
+	public Integer deleteTabSample(String sampleId) {
+		int result = 0;
+		result = tabSampleDao.deleteTabSample(sampleId);
+		if(result != 0) {
+			String url = Commons.FINGERDELADDR;
+			String param = "sampleId=" + sampleId;
+			String responseStr = HttpClient.sendPost(url, param); //返回值是true或false
+			System.out.println(responseStr);
+		}
+		return result;
+	}
+	
+	/* 向当虹接口推送，调用指纹注册接口
+	 * {
+			“name”: 指纹名字
+			“programName”:指纹节目名
+			“type”: 指纹类型, Titles – 片头, Trailer – 片尾, Ad – 广告
+			“source”: 指纹源文件路径
+			“sampleId”: 样本id，传入之前需要保证唯一性
+			}
+	* */
+	public String push(TabSample tabSample){
+		String responseStr = "";
+		String url = Commons.FINGERPUSHADDR;
+		
+		//生成json字符串
+		FingerPush fingerPush = new FingerPush();
+		fingerPush.setSampleId(tabSample.getSampleId());
+		fingerPush.setName(tabSample.getMainName());
+		fingerPush.setProgramName(tabSample.getMainName());
+		fingerPush.setType("Ad");
+		String winFileAddr = tabSample.getFileAddr();
+		String linFileAddr = winFileAddr.replace(Commons.VIDEOSAVE, Commons.DHSAVE);
+		fingerPush.setSource(linFileAddr);
+		String jsonStr = JSONObject.fromObject(fingerPush).toString();
+		
+		//调用对方指纹注册接口
+		responseStr = HttpClient.doPost(url, jsonStr);
+//		System.out.println("当虹返回值：----------" + responseStr);
+		
+		//将目标系统返回值转化成json
+		JSONObject json =  JSONObject.fromObject(responseStr);
+		FingerPushBack FingerPushBack = (FingerPushBack)JSONObject.toBean(json, FingerPushBack.class);
+		String status = FingerPushBack.getStatus();
+		if(status.contains("Success")) { //如果推送成功
+			//写入日志文件
+			String fileName = tabSample.getSampleId() + "_" + TimeUtil.getTimeYMdHMS() + ".txt";
+			String saveUrl = Commons.PUSHDATADIR + TimeUtil.getTimeDir() + "/";
+			jsonStr += responseStr;
+			LogUtil.saveSampleJson(jsonStr, saveUrl, fileName);
+			//更新extFlag的值
+			tabSample.setExtFlag(3);
+			tabSampleDao.updateTabSample(tabSample);
+		}
+		return responseStr;
+	}
+	
+	
+	 
+	 /////////////////////////////////////////////////////////////////
+	 //暂时无用的方法，此段代码为对接北大时期接口相关代码
+	 public void saveJs(String dir){
+		TabSample t = new TabSample();
+		List<TabSample> tlist = tabSampleDao.selectTabSamples(t);
+		String content = "";
+		content += "[";
+		if(null != tlist && tlist.size()>0){
+			for(int i=0;i<tlist.size();i++){
+				content += "\""+tlist.get(i).getLength()+"#"
+						+tlist.get(i).getMainName()+"#"
+						+tlist.get(i).getSecondName()+"\"";
+				if(i<tlist.size()){
+					content += ",";
+				}
+			}
+		}
+		content += "]";
+		LogUtil.saveSampleJson(content, dir, "samples");
+	}
+	//(北大)
+	public int push_bak(TabSample tabSample){
+		int pushResult = 0;
+		
+		TabSamplePush tsp = new TabSamplePush();
+		tsp.setSampleid(tabSample.getSampleId());
+		tsp.setLength(tabSample.getLength());
+		tsp.setMatchAgain(tabSample.getMatchAgain());
+		
+		//接口约定：sampleName需要base64编码
+		String sname = tabSample.getMainName();
+		byte[] bytes_sname = sname.getBytes();
+		tsp.setSamplename(new String(Base64.encodeBase64(bytes_sname)));
+		
+		//接口约定：uri需要base64编码
+		String fileAddr = tabSample.getFileAddr();
+		byte[] bytes_fileAddr = fileAddr.getBytes();
+		tsp.setUri(new String(Base64.encodeBase64(bytes_fileAddr)));
+		
+		TabAdvTypes tat = tabAdvTypesDao.selectObjById(Integer.parseInt(tabSample.getMiddleType()));
+		if(null != tat){
+			tsp.setCategory(tat.getTypeId());
+		}
+		
+		String rt = pushSampleData(tsp, tabSample.getSampleId());
+//		System.out.println("北大返回值：--------------------------"+rt);
+		ReturnBean rb = (ReturnBean)JSONObject.toBean(JSONObject.fromObject(rt), ReturnBean.class);
+		if(rb.getCode().equals(Commons.PUSHCODESUCCESS)){
+			//提取成功
+			tabSample.setExtFlag(3);
+			pushResult = 3;
+		}else if(rb.getCode().equals(Commons.PUSHCODEFAIL)){
+			//提取失败
+			tabSample.setExtFlag(2);
+		}else{
+			//未提取
+			tabSample.setExtFlag(0);
+		}
+		tabSampleDao.updateTabSample(tabSample);
+		return pushResult;
+	}
+	public String pushSampleData(TabSamplePush tsp, String sampleId){
+		String rt = "";
+		
+		try {
+			URL postUrl = new URL(Commons.PUSHADDR);
+			HttpURLConnection connection = (HttpURLConnection) postUrl.openConnection();
+			// 设置是否向connection输出，因为这个是post请求，参数要放在
+	        // http正文内，因此需要设为true
+	        connection.setDoOutput(true);
+	        connection.setDoInput(true);
+	        connection.setRequestMethod("POST");
+	        // Post 请求不能使用缓存
+	        connection.setUseCaches(false);
+	        connection.setInstanceFollowRedirects(true);
+	        // 进行编码
+	        connection.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
+	        connection.connect();
+	        DataOutputStream out = new DataOutputStream(connection.getOutputStream());
+	        
+	        String content = "";
+	        content += "sampleid=" + tsp.getSampleid() + "&";
+	        content += "samplename=" + tsp.getSamplename() + "&";
+	        content += "uri=" + tsp.getUri() + "&";
+	        content += "category=" + tsp.getCategory() + "&";
+	        content += "length=" + tsp.getLength() + "&";
+	        content += "matchAgain=" + tsp.getMatchAgain();
+	        
+//	        System.out.println("推送内容：------------------"+content);
+	        out.writeBytes(content);
+	        int responseCode = connection.getResponseCode();
+//	        System.out.println("response:------------------" + responseCode);
+	           if (responseCode == 200) {
+	               // 取回响应的结果  
+	           	rt = changeInputStream(connection.getInputStream(), "UTF-8");
+	           	
+	       		PushDataXmlBean pdxb = new PushDataXmlBean();
+	   	        pdxb.setSampleid(tsp.getSampleid());
+	   	        pdxb.setSamplename(tsp.getSamplename());
+	   	        pdxb.setUri(tsp.getUri());
+	   	        pdxb.setCategory(tsp.getCategory().toString());
+	   	        pdxb.setLength(tsp.getLength().toString());
+	   	        pdxb.setPushtime(TimeUtil.getCurrentTime());
+	   	        pdxb.setReturnvalue(rt);
+	       		XmlUtils.createPushDataXml(pdxb);
+	       		
+	            return rt;
+	           }else{
+	           	rt = "";
+	           }
+		       out.flush();
+		       out.close();
+		       
+		       BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		       String line;
+		        
+		       while ((line = reader.readLine()) != null){
+		           System.out.println(line);
+		       }
+		        
+		       reader.close();
+		       connection.disconnect();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return rt;
+	}
+	
+	private static String changeInputStream(InputStream inputStream, String encode) {  
+	    // 内存流  
+	    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();  
+	    byte[] data = new byte[1024];  
+        int len = 0;  
+	    String result = null;  
+	    if (inputStream != null) {  
+	        try {  
+	           while ((len = inputStream.read(data)) != -1) {  
+	              byteArrayOutputStream.write(data, 0, len);  
+	           }  
+	          result = new String(byteArrayOutputStream.toByteArray(), encode);  
+	        } catch (IOException e) {  
+	            e.printStackTrace();  
+	        }  
+	    }  
+	    return result;  
+	}
+	///////////////////////////////////////////////////////////////
+	@Override
+	public Integer updateTabSample(TabSample tabSample) {
+		int result = 0;
+		result = tabSampleDao.updateTabSample(tabSample);
+		TabSampleMatch tabSampleMatch = new TabSampleMatch();
+		tabSampleMatch.setSampleId(tabSample.getSampleId());
+		tabSampleMatch.setMainName(tabSample.getMainName());
+		tabSampleMatchDao.updateMainName(tabSampleMatch);
+		return result;
+	}
+
+	
+
+	@Override
+	public Integer getTotalCount(TabSample tabSample) {
+		return tabSampleDao.getTotalCount(tabSample);
+	}
+
+	@Override
+	public List<TabSample> findByIds(List<String> ids) {
+		return tabSampleDao.findByIds(ids);
+	}
+
+	@Override
+	public TabSample selectObjById(String sampleId) {
+		return tabSampleDao.selectObjById(sampleId);
+	}
+
+	@Override
+	public List<TabSample> selectUnpushTabSamples(TabSample tabSample) {
+		return tabSampleDao.selectUnpushTabSamples(tabSample);
+	}
+
+	@Override
+	public Integer getUnpushTotalCount(TabSample tabSample) {
+		return tabSampleDao.getUnpushTotalCount(tabSample);
+	}
+
+	@Override
+	public List<TabSample> selectByDimName(String mainName) {
+		return tabSampleDao.selectByDimName(mainName);
+	}
+
+	@Override
+	public String selectOneNameById(String sampleId) {
+		// TODO Auto-generated method stub
+		return tabSampleDao.selectOneNameById(sampleId);
+	}
+
+}

@@ -2,8 +2,8 @@
 <!DOCTYPE mapper
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.btvpyp.dao.TabOperLogDao">
-	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabOperLog" >
+<mapper namespace="com.btvpyp.system.dao.TabOperLogDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.system.model.TabOperLog" >
     	<id column="operLogId" property="operLogId" jdbcType="INTEGER" />
     	<result column="operLogName" property="operLogName" jdbcType="VARCHAR"/>
     	<result column="operUserName" property="operUserName" jdbcType="VARCHAR"/>

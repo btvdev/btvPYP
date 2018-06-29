@@ -1,0 +1,215 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"
+    pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/style.css">
+<link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/jquery-ui.css">
+<script src="<%=request.getContextPath()%>/resources/js/jquery-1.9.1.js"></script>
+
+<style>
+ul li{
+	list-style-type:none;
+}
+</style>
+<style>
+body {
+    margin-left: 0px;
+    margin-top: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+}
+tr{width:956px;}
+td{width:478px;}
+
+.auto_hidden {
+    width:204px;border-top: 1px solid #333; 
+    border-bottom: 1px solid #333; 
+    border-left: 1px solid #333; 
+    border-right: 1px solid #333;
+    position:absolute;
+    display:none;
+}
+.auto_show {
+    width:204px;
+    border-top: 1px solid #333; 
+    border-bottom: 1px solid #333; 
+    border-left: 1px solid #333; 
+    border-right: 1px solid #333;
+    position:absolute;
+    z-index:9999; /* 设置对象的层叠顺序 */
+    display:block;
+}
+.auto_onmouseover{
+    color:#ffffff;
+    background-color:highlight;
+    width:100%;
+}
+.auto_onmouseout{
+    color:#000000;
+    width:100%;
+    background-color:#ffffff;
+}
+</style>
+</head>
+<body>
+
+<div class="rightbox">
+	<div style="height:480px;width:640px;padding-left:10px;padding-top:40px;float:left;" id="videoDiv">
+		<video height="480" width="640" controls="controls" src="${tabSample.fileNetAddr }"></video>
+	</div>
+	<div style="width:500px;float:left;padding-left:20px;padding-top:20px;" id="viewDiv">
+		<form action="" id="updateForm" method="post" enctype="multipart/form-data">
+			<table border="0" cellspacing="0" cellpadding="0" style="border-spacing:0px 5px;">
+				<input type="hidden" value="${tabSample.sampleId }" name="sampleId" id="sampleId"/>
+				<input type="hidden" value="${tabSample.extFlag }" name="extFlag" />
+				<input type="hidden" value="${tabSample.flag }" name="flag" />
+				<input type="hidden" value="${tabSample.firstDate }" name="firstDate" />
+				<input type="hidden" value="${tabSample.firstTime }" name="firstTime" />
+				<input type="hidden" value="${tabSample.pid }" name="pid" />
+				<input type="hidden" value="${tabSample.createrName }" name="createrName" />
+				<input type="hidden" value="${tabSample.createTime }" name="createTime" />
+<%-- 				<input type="hidden" value="${tabSample.lastModifier }" name="lastModifier" /> --%>
+<%-- 				<input type="hidden" value="${tabSample.lastModifyTime }" name="lastModifyTime" /> --%>
+				<input type="hidden" value="${tabSample.columnType }" name="columnType" id="columnTypeHide" />
+				<input type="hidden" value="${tabSample.fileNetAddr }" name="fileNetAddr" id="fileNetAddr" />
+				<input type="hidden" value="${tabSample.fileAddr }" name="fileAddr" id="fileAddr" />
+				<input type="hidden" value="${tabSample.clarity }" name="clarity" id="clarity" />
+				<input type="hidden" value="${tabSample.original }" name="original" id="original" />
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>品牌号：</span></div>
+						<div style="width:320px;float:left;"><input type="text" value="${tabSample.brandId }" id="brandId" name="brandId" /></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>主名称：</span></div>
+						<div style="width:320px;float:left;"><input type="text" value="${tabSample.mainName }" id="mainName" name="mainName" style="width:320px;"/></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>副名称：</span></div>
+						<div style="width:320px;float:left;"><input type="text" value="${tabSample.secondName }" id="secondName" name="secondName" style="width:320px;" /></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>集数：</span></div>
+						<div style="width:320px;float:left;"><input type="text" value="${tabSample.jiNum }" id="jiNum" name="jiNum" /></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>数据类型：</span></div>
+						<div style="width:320px;float:left;">
+							<select id="columnType" onchange="setColumnType()">
+								<option value="adv">广告</option>
+								<option value="xc">宣传片</option>
+								<option value="jm">节目</option>
+							</select>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>时长：</span></div>
+						<div style="width:320px;float:left;"><input type="text" value="${tabSample.length }" id="length" name="length" /></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>磁带号：</span></div>
+						<div style="width:320px;float:left;"><input type="text" value="${tabSample.tapeNum }" id="tapeNum" name="tapeNum" /></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>上传视频：</span></div>
+						<div style="width:320px;float:left;"><input type="file" name="advFile" id="advFile" /></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>首播频道：</span></div>
+						<div style="width:320px;float:left;"><span>${tabSample.pid }</span></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>首播日期：</span></div>
+						<div style="width:320px;float:left;"><span>${tabSample.firstDate }</span></div>
+					</td>	
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>首播时间：</span></div>
+						<div style="width:320px;float:left;"><span>${tabSample.firstTime }</span></div>
+					</td>	
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>录入时间：</span></div>
+						<div style="width:320px;float:left;"><span><fmt:formatDate value="${tabSample.createTime }" pattern="yyyy-MM-dd HH:mm:ss" /></span></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:85px;float:left;"><span>录入人：</span></div>
+						<div style="width:320px;float:left;"><span>${tabSample.createrName }</span></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:125px;float:left;"><span>最后修改时间：</span></div>
+						<div style="width:320px;float:left;"><span><fmt:formatDate value="${tabSample.lastModifyTime }" pattern="yyyy-MM-dd HH:mm:ss" /></span></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:125px;float:left;"><span>最后修改人：</span></div>
+						<div style="width:125px;float:left;"><span>${tabSample.lastModifier }</span></div>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<div style="width:125px;float:left;">
+							<input type="button" value="保存修改" onclick="save()" />
+						</div>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+</div>
+<script language="javascript">
+	window.onload = onloadAction;
+	function setColumnType(){
+		var dataType = $("#columnType").val();
+		$("#columnTypeHide").val(dataType);
+	}
+	
+	function onloadAction(){
+		var hideColumnType = $("#columnTypeHide").val();
+		$("#columnType").find("option[value='"+hideColumnType+"']").attr("selected",true);
+		var fileNetAddr = $("#fileNetAddr").val();
+		if(fileNetAddr.indexOf(".mp4") == -1){
+			$("#videoDiv").hide();
+		}
+	}
+	
+	function save(){
+		setColumnType();
+    	var sampleId = $("#sampleId").val();
+    	$("#updateForm").attr("action", "<%=request.getContextPath()%>/tabSample/"+sampleId+"/updateWindow");
+    	$("#updateForm").submit();
+	}
+	
+</script>
+</body>
+</html>

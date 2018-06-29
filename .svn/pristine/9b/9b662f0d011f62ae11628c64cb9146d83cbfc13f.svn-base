@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.btvpyp.broadBack.dao.TabBroadBackDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.broadBack.model.TabBroadBack" >
+    	<id column="broadBackId" property="broadBackId" jdbcType="INTEGER" />
+    	<result column="jmName" property="jmName" jdbcType="VARCHAR"/>
+    	<result column="starttime" property="starttime" jdbcType="VARCHAR"/>
+    	<result column="endtime" property="endtime" jdbcType="VARCHAR"/>
+    	<result column="length" property="length" jdbcType="INTEGER"/>
+    	<result column="channel" property="channel" jdbcType="VARCHAR"/>
+    	<result column="createTime" property="createTime" jdbcType="DATE"/>
+    	<result column="cuted" property="cuted" jdbcType="INTEGER"/>
+    	<result column="fileAddr" property="fileAddr" jdbcType="VARCHAR"/>
+    	<result column="videoUrl" property="videoUrl" jdbcType="VARCHAR"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+		broadBackId,jmName,starttime,endtime,length,channel,createTime,cuted,fileAddr,videoUrl
+    </sql>
+
+    <select id="selectTabBroadBacks" resultMap="BaseResultMap" parameterType="tabBroadBack">
+    	select <include refid="Base_Column_List" />
+    	from tabBroadBack
+    	where 1=1
+    	<if test="jmName !=null and jmName != ''">
+    		and jmName = #{jmName, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="channel !=null and channel != ''">
+    		and channel = #{channel, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="chooseDayS !=null and chooseDayS != ''">
+    		and starttime <![CDATA[ >= ]]> str_to_date(#{chooseDayS,jdbcType=VARCHAR},'%Y-%m-%d %T')
+    	</if>
+    	<if test="chooseDayE !=null and chooseDayE != ''">
+    		and starttime <![CDATA[ <= ]]> str_to_date(#{chooseDayE,jdbcType=VARCHAR},'%Y-%m-%d %T')
+    	</if>
+    	
+    	order by starttime asc
+    </select>
+    
+    <select id="selectForGd" resultMap="BaseResultMap" parameterType="tabBroadBack">
+    	select <include refid="Base_Column_List" />
+    	from tabBroadBack
+    	where 1=1
+    	<if test="channel !=null and channel != ''">
+    		and channel = #{channel, jdbcType=VARCHAR} 
+    	</if>
+    	<if test="chooseDayS !=null and chooseDayS != ''">
+    		and starttime <![CDATA[ >= ]]> str_to_date(#{chooseDayS,jdbcType=VARCHAR},'%Y-%m-%d %T')
+    	</if>
+    	<if test="chooseDayE !=null and chooseDayE != ''">
+    		and starttime <![CDATA[ <= ]]> str_to_date(#{chooseDayE,jdbcType=VARCHAR},'%Y-%m-%d %T')
+    	</if>
+    </select>
+    
+    <select id="selectUncuted" resultMap="BaseResultMap" parameterType="tabBroadBack">
+    	select <include refid="Base_Column_List" />
+    	from tabbroadback
+    	where 1=1
+    	<if test="cuted !=null">
+    		and cuted = #{cuted, jdbcType=INTEGER} 
+    	</if>
+    </select>
+    
+    <update id="updateTabBroadBack" parameterType="tabBroadBack">
+    	update tabbroadback 
+    	<set>
+	    	<if test="cuted != null" >
+		    	cuted = #{cuted, jdbcType=INTEGER},
+	    	</if>
+	    	<if test="fileAddr !=null and fileAddr != ''">
+	    		fileAddr = #{fileAddr, jdbcType=VARCHAR},
+	    	</if>
+	    	<if test="videoUrl !=null and videoUrl != ''">
+	    		videoUrl = #{videoUrl, jdbcType=VARCHAR},	
+	    	</if>
+    	</set>
+    	where broadBackId=#{broadBackId, jdbcType=INTEGER}
+    </update>
+    
+    <insert id="insertTabBroadBack" parameterType="tabBroadBack">
+    	insert into tabBroadBack 
+    	(broadBackId,jmName,starttime,endtime,length,channel,createTime) 
+    	values
+    	(null, #{jmName, jdbcType=VARCHAR},#{starttime, jdbcType=VARCHAR},#{endtime, jdbcType=VARCHAR},
+    	#{length, jdbcType=INTEGER},#{channel, jdbcType=VARCHAR},#{createTime, jdbcType=DATE},#{cuted, jdbcType=INTEGER},
+    	#{fileAddr, jdbcType=VARCHAR},#{videoUrl, jdbcType=VARCHAR})
+    </insert>
+	    
+    <delete id="batchRemove" parameterType="java.util.List">
+    	delete from tabBroadBack 
+    	where broadBackId in
+    	<foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+    		#{item}
+    	</foreach>
+    </delete>
+    
+</mapper>

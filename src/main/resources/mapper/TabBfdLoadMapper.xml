@@ -2,8 +2,8 @@
 <!DOCTYPE mapper
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.btvpyp.dao.TabBfdLoadDao">
-	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabBfdLoad" >
+<mapper namespace="com.btvpyp.broadBack.dao.TabBfdLoadDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.broadBack.model.TabBfdLoad" >
     	<id column="loaddate" property="loaddate" jdbcType="VARCHAR" />
     	<result column="loadflag" property="loadflag" jdbcType="INTEGER" />
     </resultMap>

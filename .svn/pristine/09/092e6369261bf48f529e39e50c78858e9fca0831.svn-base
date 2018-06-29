@@ -1,0 +1,129 @@
+package com.btvpyp.utils;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * 常量配置类
+ * @author gaobo 2017-03-20
+ *
+ */
+public class Commons {
+	
+	//DES密钥字符串，系统约定值
+	public static final String DESKEY1 = "937660";
+	public static final String DESKEY2 = "157471";
+	public static final String DESKEY3 = "393572";
+	
+	//服务器IP地址及域名地址
+	public static final String DOMAINADDR = "http://jianbo.btv.com.cn/";
+	
+	//(当虹)
+	public static final String FINGERPUSHADDR = "http://10.8.12.133:7702/api/fingerprint/v2/register/";    //指纹推送接口地址
+	public static final String FINGERDELADDR = "http://10.8.12.133:7702/api/fingerprint/v2/delete";        //指纹删除接口地址
+	public static final String TRIMCONTENTADDR = "http://10.8.12.133:7702/api/fingerprint/v2/trimcontent"; //自动碎片化接口地址
+	
+	public static final String UPLOADDIR = "Z:/videos/upload/";  //样本上载目录
+	public static final String DEFAULTAGENT = "北京台";
+	
+	/*操作日志KEY值*/
+	public static final String ADDSAMPLE = "新增样本";
+	public static final String DELSAMPLE = "删除样本";
+	public static final String UPDSAMPLE = "修改样本";
+	public static final String DELMATCH = "删除匹配流水单";
+	public static final String UPDMATCH = "修改流水单";
+	public static final String REPUSH = "样本重新推送";
+	public static final String GDBFD = "归档播返单";
+	public static final String ADDUSER = "新增用户";
+	public static final String DELUSER = "删除用户";
+	
+	/*session存储变量*/
+	public static final String SESSIONLOGDATE = "logDate";  //session存储变量：流水单全局日期
+	public static final String SESSIONPID = "pid";          //session存储变量：频道号
+	public static final String SESSIONREALNAME = "sessionRealName";
+	
+	/*接口日志文件存放地址*/
+	public static final String MATCHLOGDIR = "E:/interfaceLog/matchData/";  //匹配记录日志文件
+	public static final String PUSHDATADIR = "E:/interfaceLog/pushData/";   //推送数据记录日志文件
+	public static final String PIECELOGDIR = "E:/interfaceLog/pieceLog/";  //匹配记录日志文件
+	public static final String PIECEREQUESTLOGDIR = "E:/interfaceLog/pieceRequestLog/";  //匹配记录日志文件
+	
+	/*样本视频文件存放地址*/
+	public static final String VIDEOSAVE = "Z:/videos/";   //样本上传视频文件保存根路径
+	public static final String DHSAVE = "/mnt/data/remote/fingersharefolder/videos/";  //当虹对应的linux存储地址
+	
+	//播返单Excel文件存放的根目录
+	public static final String BFDDIR = "F:/";
+	/*与特雷森旧业务系统通信约定字符串 -start*/
+	public static final String REQUESTURL_ADD = "http://10.1.121.105/WebAdvProgName/Service.asmx?op=addProgMsg";
+	public static final String REQUESTURL_UPDATE = "http://10.1.121.105/WebAdvProgName/Service.asmx?op=updProgMsg";
+	public static final String REQUESTURL_DELETE = "http://10.1.121.105/WebAdvProgName/Service.asmx?op=delProgMsg";
+	//报文字符串模板
+	public static final String SOAP_ADD = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
+			   "<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">"+
+		       "<soap:Body>"+
+			   "<addProgMsg xmlns=\"http://tempuri.org/\">"+
+			   "<gg_idno>REP_GG_IDNO</gg_idno>"+
+			   "<gg_name>GG_NAME</gg_name>"+
+			   "<gg_subname>GG_SUBNAME</gg_subname>"+
+			   "<gg_date>GG_DATE</gg_date>"+
+			   "<gg_type>GG_TYPE</gg_type>"+
+			   "<gg_def>GG_DEF</gg_def>"+
+			   "<gg_len>GG_LEN</gg_len>"+
+			   "<gg_script>GG_SCRIPT</gg_script>"+
+			   "<gg_froname>GG_FRONAME</gg_froname>"+
+			   "<gg_tapeno>GG_TAPENO</gg_tapeno>"+
+			   "<add_person>ADD_PERSON</add_person>"+
+			   "</addProgMsg>"+
+			   "</soap:Body>"+
+			   "</soap:Envelope>";
+	
+	public static final String SOAP_UPDATE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
+	           "<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">"+
+	           "<soap:Body>"+
+	           "<updProgMsg xmlns=\"http://tempuri.org/\">"+
+	           "<gg_idno>GG_IDNO</gg_idno>"+
+	           "<gg_name>GG_NAME</gg_name>"+
+	           "<gg_subname>GG_SUBNAME</gg_subname>"+
+	           "<gg_date>GG_DATE</gg_date>"+
+	           "<gg_type>GG_TYPE</gg_type>"+
+	           "<gg_def>GG_DEF</gg_def>"+
+	           "<gg_len>GG_LEN</gg_len>"+
+	           "<gg_script>GG_SCRIPT</gg_script>"+
+	           "<gg_froname>GG_FRONAME</gg_froname>"+
+	           "<gg_tapeno>GG_TAPENO</gg_tapeno>"+
+	           "<add_person>ADD_PERSON</add_person>"+
+	           "<gg_name_bef>GG_NAME_BEF</gg_name_bef>"+
+	           "<gg_subname_bef>GG_SUBNAME_BEF</gg_subname_bef>"+
+	           "<gg_date_bef>2018/06/01</gg_date_bef>"+
+	           "<gg_type_bef>GG_TYPE_BEF</gg_type_bef>"+
+	           "<gg_def_bef>GG_DEF_BEF</gg_def_bef>"+
+	           "<gg_len_bef>GG_LEN_BEF</gg_len_bef>"+
+	           "<gg_script_bef>GG_SCRIPT_BEF</gg_script_bef>"+
+	           "<gg_froname_bef>GG_FRONAME_BEF</gg_froname_bef>"+
+	           "<gg_tapeno_bef>GG_TAPENO_BEF</gg_tapeno_bef>"+
+	           "<add_person_bef>ADD_PERSON_BEF</add_person_bef>"+
+	           "</updProgMsg>"+
+	           "</soap:Body>"+
+	           "</soap:Envelope>";
+	
+	public static final String SOAP_DELETE = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"+
+	           "<soap:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">"+
+			   "<soap:Body>"+
+	           "<delProgMsg xmlns=\"http://tempuri.org/\">"+
+			   "<gg_idno>GG_IDNO</gg_idno>"+
+	           "<gg_name>GG_NAME</gg_name>"+
+			   "<gg_subname>GG_SUBNAME</gg_subname>"+
+	           "<gg_date>GG_DATE</gg_date>"+
+			   "<gg_type>GG_TYPE</gg_type>"+
+	           "<gg_def>GG_DEF</gg_def>"+
+			   "<gg_len>GG_LEN</gg_len>"+
+	           "<gg_script>GG_SCRIPT</gg_script>"+
+			   "<gg_froname>GG_FRONAME</gg_froname>"+
+	           "<gg_tapeno>GG_TAPENO</gg_tapeno>"+
+			   "<add_person>ADD_PERSON</add_person>"+
+	           "</delProgMsg>"+
+			   "</soap:Body>"+
+	           "</soap:Envelope>";
+	/*与特雷森旧业务系统通信约定字符串 -end*/
+}

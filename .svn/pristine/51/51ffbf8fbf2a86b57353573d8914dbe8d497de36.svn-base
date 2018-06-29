@@ -1,0 +1,780 @@
+package com.btvpyp.sampleMatch.controller;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.poi.util.StringUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.btvpyp.advType.model.TabAdvTypes;
+import com.btvpyp.advType.service.TabAdvTypesService;
+import com.btvpyp.detail.service.TabDetailService;
+import com.btvpyp.excel.service.ExcelService;
+import com.btvpyp.sample.model.TabSample;
+import com.btvpyp.sample.service.TabSampleService;
+import com.btvpyp.sampleMatch.model.TabSampleMatch;
+import com.btvpyp.sampleMatch.service.TabSampleMatchService;
+import com.btvpyp.system.model.TabUser;
+import com.btvpyp.system.service.TabOperLogService;
+import com.btvpyp.utils.Commons;
+import com.btvpyp.utils.DateStringUtils;
+import com.btvpyp.utils.KeyGen;
+import com.btvpyp.utils.StrUtils;
+import com.btvpyp.utils.TimeUtil;
+import com.btvpyp.utils.UploadUtils;
+
+@Controller
+@RequestMapping("/tabSampleMatch")
+public class TabSampleMatchController {
+	
+	@Autowired
+	public TabSampleMatchService tabSampleMatchService;
+	
+	@Autowired
+	public TabSampleService tabSampleService;
+	
+	@Autowired
+	public TabAdvTypesService tabAdvTypesService;
+	
+	@Autowired 
+	public ExcelService excelService;
+	
+	@Autowired
+	public TabDetailService tabDetailService;
+	
+	@Autowired
+	private HttpServletRequest request;
+	
+	@Autowired
+	public TabOperLogService tabOperLogService;
+	/**
+	 * 新增流水单
+	 * @param lastEndTime   上一条流水单的结束时间
+	 * @param model
+	 * @return
+	 */
+	@RequestMapping(value="/addSampleMatch",method=RequestMethod.GET)
+	public String addSampleMatch(@RequestParam String lastEndTime,@RequestParam String thisStartTime, 
+			@RequestParam String start,@RequestParam String end, @RequestParam String pid,@RequestParam String hrefId,  
+			@RequestParam String sampleDate, @RequestParam String lastDate, Model model){
+//		HttpSession session = request.getSession();
+//		String pid = (String)session.getAttribute(Commons.SESSIONPID);
+		if(StrUtils.isNotEmptyStr(lastEndTime)) {
+			lastEndTime = lastEndTime.replaceAll(":", "");
+		}
+		if(StrUtils.isNotEmptyStr(thisStartTime)) {
+			thisStartTime = thisStartTime.replaceAll(":", "");
+		}
+//		List<TabAdvTypes> advTypesList = tabAdvTypesService.selectByLevel(3);
+//		model.addAttribute("advTypesList", advTypesList);
+		model.addAttribute("lastEndTime", lastEndTime);
+		model.addAttribute("thisStartTime", thisStartTime);
+		model.addAttribute("start", start);
+		model.addAttribute("end", end);
+		model.addAttribute("pid", pid);
+		model.addAttribute("hrefId", hrefId);
+		model.addAttribute("currsampleDate", sampleDate);
+		model.addAttribute("lastDate", lastDate);
+		
+		return "sampleMatch/addSampleMatch";
+//		return new RedirectView
+	}
+	/**
+	 * 新增流水单
+	 * @param startTime     开始时间
+	 * @param endTime       结束时间
+	 * @param sampleIdHide  样本id
+	 * @param mainName      主名称
+	 * @param secondName    副标题
+	 * @param length        时长
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value="/addSampleMatch",method=RequestMethod.POST)
+	public String addSampleMatch(@RequestParam String startTime,@RequestParam String endTime,
+			@RequestParam String sampleIdHide, @RequestParam String mainName, 
+			@RequestParam String secondName, @RequestParam String length, 
+			@RequestParam String columnType, @RequestParam String start , 
+			@RequestParam String end, @RequestParam String pidhide, @RequestParam String tapeNum, 
+			@RequestParam String jiNum,	MultipartFile advFile, @RequestParam String unknownSample, 
+			@RequestParam String brandId, @RequestParam String hrefId,@RequestParam String currsampleDate,
+			@RequestParam String lastDate, Model model, HttpServletRequest request){
+		
+		HttpSession session = request.getSession();
+		String sessionRealName = (String)session.getAttribute(Commons.SESSIONREALNAME);
+		TabSample ts = null;
+		TabSampleMatch tsm = new TabSampleMatch();
+		tsm.setPid(pidhide);
+		if(StrUtils.isNotEmptyStr(mainName)) {
+			tsm.setMainName(mainName);
+		}
+		if(StrUtils.isNotEmptyStr(secondName)) {
+			tsm.setSecondName(secondName);
+		}
+		if(StrUtils.isNotEmptyStr(brandId)) {
+			tsm.setBrandId(Integer.parseInt(brandId));
+		}
+		if(StrUtils.isNotEmptyStr(columnType)) {
+			tsm.setColumnType(columnType);
+		}
+		Timestamp startTs = null;
+		if(StrUtils.isNotEmptyStr(startTime)){
+			String bzStartTs = TimeUtil.changeStringTimeFormat(currsampleDate + startTime, "yyyyMMddHHmmss", "yyyy-MM-dd HH:mm:ss");
+			startTs = Timestamp.valueOf(bzStartTs);
+			tsm.setStartTime(startTs.getTime()+"");
+		}
+		if(StrUtils.isNotEmptyStr(endTime)){
+			String bzEndTs = TimeUtil.changeStringTimeFormat(currsampleDate + endTime, "yyyyMMddHHmmss", "yyyy-MM-dd HH:mm:ss");
+			Timestamp endTs = Timestamp.valueOf(bzEndTs);
+			if(endTs.getTime() < startTs.getTime()){
+				String bzStartTs = TimeUtil.changeStringTimeFormat(lastDate + startTime, "yyyyMMddHHmmss", "yyyy-MM-dd HH:mm:ss");
+				startTs = Timestamp.valueOf(bzStartTs);
+				tsm.setStartTime(startTs.getTime()+"");
+			}
+			tsm.setEndTime(endTs.getTime()+"");
+		}
+		if(StrUtils.isNotEmptyStr(length)){
+			tsm.setLength(Integer.parseInt(length));
+		}
+		if(StrUtils.isNotEmptyStr(tapeNum)){
+			tsm.setTapeNum(tapeNum);
+		}
+		/*unknownSample为1代表未知样本，为0代表已存在样本*/
+		if(unknownSample.equals("0")){
+			if(StrUtils.isNotEmptyStr(sampleIdHide)){//已存在样本
+				ts = tabSampleService.selectObjById(sampleIdHide);
+				boolean needUpdTs = false;
+				if(!StrUtils.isNotEmptyStr(ts.getFirstDate())) {
+					ts.setFirstDate(currsampleDate);//记录首播日期
+					needUpdTs = true;
+				}
+				if(!StrUtils.isNotEmptyStr(ts.getFirstTime())) {
+					ts.setFirstTime(startTime);//记录首播时间
+					needUpdTs = true;
+				}
+				if(!StrUtils.isNotEmptyStr(ts.getPid())) {
+					ts.setPid(pidhide);
+					needUpdTs = true;
+				}
+				if(needUpdTs == true) {
+					tabSampleService.updateTabSample(ts);
+				}
+				tsm.setSampleId(ts.getSampleId());
+				tsm.setIsAdv(ts.getIsAdv());
+				tsm.setCreaterName(sessionRealName);
+				tsm.setCreateTime(ts.getCreateTime());
+				if(StrUtils.isNotEmptyStr(jiNum)){
+					tsm.setJiNum(Integer.parseInt(jiNum));
+				}
+				tsm.setSampleDate(ts.getSampleDate());
+				tsm.setTapeNum(ts.getTapeNum());
+				tsm.setColumnType(ts.getColumnType());
+				tsm.setDeleteFlg(0);
+			}else {  //新增样本
+				TabSample tabSample = new TabSample();
+				String sampleId = KeyGen.getADVId();
+				tabSample.setSampleId(sampleId);
+				String advFileName = advFile.getOriginalFilename();
+				if(advFileName.contains(".MP4") || advFileName.contains(".mp4")) {
+					Map<String, String> map = UploadUtils.uploadSampleFile(advFile, "");
+					tabSample.setFileAddr(map.get("fileAddr"));
+					tabSample.setFileNetAddr(map.get("fileNetAddr"));
+					tabSample.setExtFlag(0);
+				}else{
+					tabSample.setExtFlag(4);
+				}
+				tabSample.setMainName(mainName);
+				tabSample.setFlag(1);
+				tabSample.setSecondName(secondName);
+				tabSample.setBrandId(Integer.parseInt(brandId));
+				if(StrUtils.isNotEmptyStr(tapeNum)){
+					tabSample.setTapeNum(tapeNum);
+				}
+				tabSample.setPid(pidhide);
+				tabSample.setCreaterName(sessionRealName);
+				tabSample.setCreateTime(new Timestamp(System.currentTimeMillis()));
+				tabSample.setColumnType(columnType);
+				tabSample.setLength(Integer.parseInt(length));
+				if(StrUtils.isNotEmptyStr(jiNum)){
+					tabSample.setJiNum(Integer.parseInt(jiNum));
+				}
+				tabSample.setIsAdv(1);
+				tabSample.setFirstDate(currsampleDate);   //记录首播日期
+				tabSample.setFirstTime(startTime);        //记录首播时间
+				tabSampleService.insertTabSample(tabSample);
+				tsm.setSampleId(sampleId);
+			}
+		}
+				
+		tsm.setCreaterName(sessionRealName);
+		tabSampleMatchService.insertTabSampleMatch(tsm);
+		//向详单表同步
+		tabDetailService.insertTabDetail(tsm);
+		model.addAttribute("hrefId", hrefId);
+//		return "redirect:/tabSampleMatch/search/?pid="+pidhide+"&start="+start+"&end="+end;
+		return "sampleMatch/addSampleMatchSuccess";
+	}
+	
+	/**
+	 * 日期格式转换
+	 * @param oldTime
+	 * @return
+	 */
+	public static String returnNewTime(String oldTime, String format){
+//		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat sdf = new SimpleDateFormat(format);
+		Timestamp tp = new Timestamp(Long.parseLong(oldTime));
+		String newTime = sdf.format(tp);
+		return newTime;
+	}
+	
+	@RequestMapping(value="/searchManual",method=RequestMethod.GET)
+	public String searchManual(Model model){
+		return "sampleMatch/manuals";
+	}
+	
+	@RequestMapping(value="/searchManual",method=RequestMethod.POST)
+	public String searchManual(Model model, @RequestParam String pid, @RequestParam String start,
+			@RequestParam String end){
+		TabSampleMatch t = new TabSampleMatch();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		if(null != pid && !"".equals(pid)){
+			t.setPid(pid);
+		} 
+		if(null != start && !"".equals(start)){
+			String startChange = "";
+			try {
+				Long ls = sdf.parse(start).getTime();
+				startChange = ls.toString();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			t.setStart(startChange);
+		}
+		if(null != end && !"".equals(end)){
+			String endChange = "";
+			try {
+				Long le = sdf.parse(end).getTime();
+				endChange = le.toString();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			t.setEnd(endChange);
+		}
+		Integer totalCount = tabSampleMatchService.selectTotalManuals(t);
+		List<TabSampleMatch> sampleMatchList = tabSampleMatchService.selectManuals(t);
+		if(null != sampleMatchList) {
+			if(sampleMatchList.size() > 0) {
+				for(int i=0; i<sampleMatchList.size();i++) {
+					String timeS = sampleMatchList.get(i).getStartTime();
+		            String startTime = returnNewTime(timeS, "HHmmss");
+		            sampleMatchList.get(i).setStartTimeJsp(startTime);
+		            
+		            String timeE = sampleMatchList.get(i).getEndTime();
+		            String endTime = returnNewTime(timeE, "HHmmss");
+		            sampleMatchList.get(i).setEndTimeJsp("0" + endTime);
+//		            Long lengthLong = (Long.parseLong(timeE) - Long.parseLong(timeS))/1000;
+//		            sampleMatchList.get(i).setLength(lengthLong.intValue());
+				}
+			}
+		}
+		model.addAttribute("sampleMatchList", sampleMatchList);
+		model.addAttribute("totalCount", totalCount);
+		return "sampleMatch/manuals";
+	}
+	@RequestMapping(value="/searchUnit",method=RequestMethod.GET)
+	public String selectSampleMatchs(Model model){
+		TabSampleMatch t = new TabSampleMatch();
+		String pid = "BTV1";//第一次检索默认BTV1
+		/* 查询列表的先决条件：用户登录时选定的日期，和频道号 */
+		HttpSession session = request.getSession();
+		String logDate = (String)session.getAttribute(Commons.SESSIONLOGDATE);
+		Long todayTimestamp = DateStringUtils.stringToTimestamp(logDate, "yyyy-MM-dd");
+		if(null != pid && !"".equals(pid)) {
+			t.setPid(pid);
+		}
+		
+		t.setStart(todayTimestamp.toString());
+		/* 查询列表的先决条件：用户登录时选定的日期，和频道号 */
+		
+		//暂时取消流水单分页
+//		t.setPageSize(20);
+//		Integer totalCount = tabSampleMatchService.getTotalCount(t);
+//		Page page = new Page(1, t.getPageSize(), totalCount);
+//		t.setStartIndex(page.getStartIndex());
+		
+		//总条数
+		Integer totalCount = tabSampleMatchService.getTotalCount(t);
+		List<TabSampleMatch> sampleMatchList = tabSampleMatchService.selectTabSampleMatchs(t);
+		if(null != sampleMatchList && sampleMatchList.size()>0){
+//			sampleMatchList.get(0).setNeedRed(1);
+			for(int i=0;i<sampleMatchList.size();i++){
+				//相邻两条流水单记录如果前后时间没有完全咬合的显示处理逻辑
+				if(i!=0){
+					String thisStart = returnNewTime(sampleMatchList.get(i).getStartTime(), "HH:mm:ss");
+					String lastEnd = returnNewTime(sampleMatchList.get(i-1).getEndTime(), "HH:mm:ss");
+					String lastDate = returnNewTime(sampleMatchList.get(i-1).getEndTime(), "yyyyMMdd");
+					if(!thisStart.equals(lastEnd)){
+						sampleMatchList.get(i).setNeedRed(1);
+						//记录上一条匹配记录的结束时间，用于页面逻辑
+						String timeLe = sampleMatchList.get(i-1).getEndTime();
+						sampleMatchList.get(i).setLastEndTime(returnNewTime(timeLe, "HH:mm:ss"));
+						sampleMatchList.get(i).setLastDate(lastDate);
+					}else{
+						sampleMatchList.get(i).setNeedRed(0);
+					}
+				}else{
+					sampleMatchList.get(i).setNeedRed(0);
+				}
+				
+				String timeS = sampleMatchList.get(i).getStartTime();
+	            String startTime = returnNewTime(timeS, "HH:mm:ss");
+	            sampleMatchList.get(i).setStartTimeJsp(startTime);
+	            
+	            String timeE = sampleMatchList.get(i).getEndTime();
+	            String endTime = returnNewTime(timeE, "HH:mm:ss");
+	            sampleMatchList.get(i).setEndTimeJsp(endTime);
+	            
+	            String sampleDateStr = returnNewTime(sampleMatchList.get(i).getStartTime(), "yyyyMMdd");
+	            sampleMatchList.get(i).setSampleDate(sampleDateStr);
+			}
+		}
+		
+		model.addAttribute("sampleMatchList", sampleMatchList);
+		model.addAttribute("totalCount", totalCount);
+		model.addAttribute("start", logDate);
+		model.addAttribute("pid", pid);
+//		model.addAttribute("page", page);
+		return "sampleMatch/sampleMatchList";
+	}
+	@RequestMapping(value="/search",method=RequestMethod.GET)
+	public String selectSampleMatchs(@RequestParam String pid,@RequestParam String start
+			, @RequestParam String end, Model model){
+		TabSampleMatch t = new TabSampleMatch();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		if(!StrUtils.isNotEmptyStr(pid)) {
+			pid = "BTV1";//第一次检索默认BTV1
+		}
+		/* 查询列表的先决条件：用户登录时选定的日期，和频道号 */
+		HttpSession session = request.getSession();
+		String logDate = (String)session.getAttribute(Commons.SESSIONLOGDATE);
+		Long todayTimestamp = DateStringUtils.stringToTimestamp(logDate, "yyyy-MM-dd");
+		if(null != pid && !"".equals(pid)) {
+			t.setPid(pid);
+		}
+		if(null != start && !"".equals(start)) {
+			String startChange = "";
+			try {
+				Long ls = sdf.parse(start + " 00:00:00").getTime();
+				startChange = ls.toString();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			t.setStart(startChange);
+		} else{
+			t.setStart(todayTimestamp.toString());
+		}
+		if(null != end && !"".equals(end)) {
+			String endChange = "";
+			try {
+				Long ls = sdf.parse(end + " 23:59:59").getTime();
+				endChange = ls.toString();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			t.setEnd(endChange);
+		} 
+		/* 查询列表的先决条件：用户登录时选定的日期，和频道号 */
+		
+		//暂时取消流水单分页
+//		t.setPageSize(20);
+//		Integer totalCount = tabSampleMatchService.getTotalCount(t);
+//		Page page = new Page(1, t.getPageSize(), totalCount);
+//		t.setStartIndex(page.getStartIndex());
+		
+		//总条数
+		Integer totalCount = tabSampleMatchService.getTotalCount(t);
+		List<TabSampleMatch> sampleMatchList = tabSampleMatchService.selectTabSampleMatchs(t);
+		if(null != sampleMatchList && sampleMatchList.size()>0){
+			sampleMatchList.get(0).setNeedRed(1);
+			for(int i=0;i<sampleMatchList.size();i++){
+				//相邻两条流水单记录如果前后时间没有完全咬合的显示处理逻辑
+				if(i!=0){
+					String thisStart = returnNewTime(sampleMatchList.get(i).getStartTime(), "HH:mm:ss");
+					String lastEnd = returnNewTime(sampleMatchList.get(i-1).getEndTime(), "HH:mm:ss");
+					if(!thisStart.equals(lastEnd)){
+						sampleMatchList.get(i).setNeedRed(1);
+						//记录上一条匹配记录的结束时间，用于页面逻辑
+						String timeLe = sampleMatchList.get(i-1).getEndTime();
+						sampleMatchList.get(i).setLastEndTime(returnNewTime(timeLe, "HH:mm:ss"));
+					}else{
+						sampleMatchList.get(i).setNeedRed(0);
+					}
+				}else{
+					sampleMatchList.get(i).setNeedRed(0);
+				}
+				
+				String timeS = sampleMatchList.get(i).getStartTime();
+	            String startTime = returnNewTime(timeS,"HH:mm:ss");
+	            sampleMatchList.get(i).setStartTimeJsp(startTime);
+	            
+	            String timeE = sampleMatchList.get(i).getEndTime();
+	            String endTime = returnNewTime(timeE,"HH:mm:ss");
+	            sampleMatchList.get(i).setEndTimeJsp(endTime);
+	            
+	            String sampleDateStr = returnNewTime(sampleMatchList.get(i).getStartTime(), "yyyyMMdd");
+	            sampleMatchList.get(i).setSampleDate(sampleDateStr);
+//	            Long lengthLong = (Long.parseLong(timeE) - Long.parseLong(timeS))/1000;
+//	            sampleMatchList.get(i).setLength(lengthLong.intValue());
+	            
+	            
+//	            sampleMatchList.get(i).setLength((Integer.parseInt(timeE) - Integer.parseInt(timeS))/1000);
+	            //如果数据库中记录的时长为0，则自动用结束时间减去开始时间作为时长显示在列表中
+//	            if(sampleMatchList.get(i).getLength() == null || sampleMatchList.get(i).getLength()==0){
+//	            	sampleMatchList.get(i).setLength(Integer.parseInt(timeE) - Integer.parseInt(timeS));
+//	            }
+			}
+		}
+		
+		model.addAttribute("sampleMatchList", sampleMatchList);
+		model.addAttribute("totalCount", totalCount);
+		model.addAttribute("start", start);
+		model.addAttribute("end", end);
+		model.addAttribute("pid", pid);
+//		model.addAttribute("page", page);
+		return "sampleMatch/sampleMatchList";
+	}
+	
+	
+	@RequestMapping(value="/search",method=RequestMethod.POST)
+	public String selectSampleMatchs(@RequestParam String pid, @RequestParam String start,
+			@RequestParam String end, @RequestParam String createrName,@RequestParam String mainName,
+			@RequestParam String sampleId, /*@RequestParam Integer currPage,*/ Model model){
+		TabSampleMatch t = new TabSampleMatch();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//		SimpleDateFormat sdf2 = new SimpleDateFormat("HHmmss");
+		if(null != pid && !"".equals(pid)){
+			t.setPid(pid);
+		} 
+		if(null != start && !"".equals(start)){
+			
+			String startChange = "";
+			try {
+				Long ls = sdf.parse(start + " 00:00:00").getTime();
+				startChange = ls.toString();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			t.setStart(startChange);
+		}
+		if(null != end && !"".equals(end)){
+			String endChange = "";
+			try {
+				Long le = sdf.parse(end + " 23:59:59").getTime();
+				endChange = le.toString();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			t.setEnd(endChange);
+		}
+		if(null != createrName && !"".equals(createrName)){
+			t.setCreaterName(createrName.trim());
+		}
+		if(null != mainName && !"".equals(mainName)){
+			t.setMainName(mainName.trim());
+		}
+		if(null != sampleId && !"".equals(sampleId)){
+			t.setSampleId(sampleId.trim());
+		}
+		//暂时取消分页
+//		t.setPageSize(20);
+		Integer totalCount = tabSampleMatchService.getTotalCount(t);
+		//通过Page构造器获得真分页所必须的字段值
+//		Page page = new Page(currPage, t.getPageSize(), totalCount);
+		//startIndex用于真分页的limt sql查询
+//		t.setStartIndex(page.getStartIndex());
+		List<TabSampleMatch> sampleMatchList = tabSampleMatchService.selectTabSampleMatchs(t);
+		if(null != sampleMatchList && sampleMatchList.size()>0){
+			for(int i=0;i<sampleMatchList.size();i++){
+				//相邻两条流水单记录如果前后时间没有完全咬合的显示处理逻辑
+				if(i!=0){
+					String thisStart = returnNewTime(sampleMatchList.get(i).getStartTime(),"HH:mm:ss");
+					String lastEnd = returnNewTime(sampleMatchList.get(i-1).getEndTime(),"HH:mm:ss");
+					String lastDate = returnNewTime(sampleMatchList.get(i-1).getEndTime(), "yyyyMMdd");
+					if(!thisStart.equals(lastEnd)){
+						sampleMatchList.get(i).setNeedRed(1);
+						//记录上一条匹配记录的结束时间，用于页面逻辑
+						String timeLe = sampleMatchList.get(i-1).getEndTime();
+						sampleMatchList.get(i).setLastEndTime(returnNewTime(timeLe,"HH:mm:ss"));
+						sampleMatchList.get(i).setLastDate(lastDate);
+					}else{
+						sampleMatchList.get(i).setNeedRed(0);
+					}
+				}else{
+					sampleMatchList.get(i).setNeedRed(0);
+				}
+				
+				//更改日期在页面上的显示格式，业务方的习惯是,开始时间为HHmmss，结束时间为0HHmmss
+				String timeS = sampleMatchList.get(i).getStartTime();
+	            String startTime = returnNewTime(timeS, "HH:mm:ss");
+	            sampleMatchList.get(i).setStartTimeJsp(startTime);
+	            
+	            String timeE = sampleMatchList.get(i).getEndTime();
+	            String endTime = returnNewTime(timeE, "HH:mm:ss");
+//	            sampleMatchList.get(i).setEndTimeJsp("0" + endTime);
+	            sampleMatchList.get(i).setEndTimeJsp(endTime);
+	            
+	            String sampleDateStr = returnNewTime(sampleMatchList.get(i).getStartTime(), "yyyyMMdd");
+	            sampleMatchList.get(i).setSampleDate(sampleDateStr);
+//	            Long lengthLong = (Long.parseLong(timeE) - Long.parseLong(timeS))/1000;
+//	            sampleMatchList.get(i).setLength(lengthLong.intValue());
+	            
+	            //如果数据库中记录的时长为0，则自动用结束时间减去开始时间作为时长显示在列表中
+//	            if(sampleMatchList.get(i).getLength() == null || sampleMatchList.get(i).getLength()==0){
+//	            	sampleMatchList.get(i).setLength((Integer.parseInt(timeE) - Integer.parseInt(timeS))/1000);
+//	            }
+			}
+		}
+		
+		model.addAttribute("sampleMatchList", sampleMatchList);
+//		model.addAttribute("page", page);
+		model.addAttribute("pid", pid);
+		model.addAttribute("start", start);
+		model.addAttribute("end", end);
+		model.addAttribute("createrName", createrName);
+		model.addAttribute("mainName", mainName);
+		model.addAttribute("sampleId", sampleId);
+		model.addAttribute("totalCount", totalCount);
+		
+		return "sampleMatch/sampleMatchList";
+	}
+	
+	@RequestMapping(value="/exportData",method=RequestMethod.POST) 
+	public void exportExcel(HttpServletResponse response,@RequestParam String pid, @RequestParam String start,
+			@RequestParam String end, @RequestParam String createrName,@RequestParam String mainName,@RequestParam String sampleId){
+		
+		HttpSession session = request.getSession();
+		String pidDef = (String)session.getAttribute(Commons.SESSIONPID);
+		String logDate = (String)session.getAttribute(Commons.SESSIONLOGDATE);
+		Long todayTimestamp = DateStringUtils.stringToTimestamp(logDate, "yyyy-MM-dd");
+		
+		//如果页面上未选定导出的频道和日期，则使用登录时选择的系统默认日期
+		if(null == pid || "".equals(pid)){
+			pid = pidDef;
+		}
+		
+		
+		if(null == start || "".equals(start)){
+			start += " 00:00:00";
+			start = todayTimestamp.toString();
+		}else{
+			start += " 00:00:00";
+			start = Timestamp.valueOf(start).getTime() + "";
+		}
+		if(null != end && !"".equals(end)){
+			end += " 23:59:59";
+			end = Timestamp.valueOf(end).getTime() + "";
+		}
+		
+		response.setContentType("application/binary;charset=ISO8859_1");
+		try {
+			ServletOutputStream outputStream = response.getOutputStream();  
+			String fileName = new String(("样本匹配流水单").getBytes(), "ISO8859_1");
+			response.setHeader("Content-disposition", "attachment; filename=" + fileName + ".xlsx");// 组装附件名称和格式
+			excelService.exportSampleMatch(pid, start, end, createrName,mainName,sampleId,outputStream);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	/**
+	 * 删除样本流水
+	 * @param sampleMatchId  流水单ID
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value="/deleteOne",method=RequestMethod.GET)
+	public String delete(@RequestParam String sampleMatchId,@RequestParam String start,@RequestParam String end, 
+			@RequestParam String pid, HttpServletRequest request){
+		HttpSession session = request.getSession();
+		TabUser tu = (TabUser)session.getAttribute("tabUser");
+		TabSampleMatch tabSampleMatch = tabSampleMatchService.getOneById(Integer.parseInt(sampleMatchId));
+		int result = tabSampleMatchService.deleteTabSampleMatch(tabSampleMatch);
+		/*记录操作日志 -- start*/
+		if(result > 0){
+			tabOperLogService.insertTabOperLog(Commons.DELMATCH, tu.getUserName(), sampleMatchId);
+		}
+		/*记录操作日志 -- end*/
+		return "redirect:/tabSampleMatch/search/?pid="+pid+"&start="+start+"&end="+end;
+	}
+	
+	@RequestMapping(value="/{sampleMatchId}/update",method=RequestMethod.GET)
+	public String update(@PathVariable String sampleMatchId, @RequestParam String start,@RequestParam String end, 
+			@RequestParam String pid, @RequestParam String sampleDate, HttpServletRequest request, Model model){
+		HttpSession session = request.getSession();
+//		String pidDef = (String)session.getAttribute(Commons.SESSIONPID);
+		String logDate = (String)session.getAttribute(Commons.SESSIONLOGDATE);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		TabSampleMatch tabSampleMatch = tabSampleMatchService.getOneById(Integer.parseInt(sampleMatchId));
+		
+		String startTime = tabSampleMatch.getStartTime();
+//		Timestamp tp = new Timestamp(Long.parseLong(startTime));
+//		startTime = sdf.format(tp);
+		tabSampleMatch.setStartTime(returnNewTime(startTime, "HHmmss"));
+//		tabSampleMatch.setStartTime(startTime);
+		
+		String endTime = tabSampleMatch.getEndTime();
+//		Timestamp tpe = new Timestamp(Long.parseLong(endTime));
+//		endTime = sdf.format(tpe);
+		tabSampleMatch.setEndTime(returnNewTime(endTime, "HHmmss"));
+//		tabSampleMatch.setEndTime(endTime);
+		
+		model.addAttribute("tabSampleMatch", tabSampleMatch);
+		model.addAttribute("currsampleDate", sampleDate);
+		model.addAttribute("pid", pid);
+		/*
+		model.addAttribute("start", start);
+		model.addAttribute("end", end);
+		*/
+		model.addAttribute("logDate", logDate);
+		return "sampleMatch/updateSampleMatch";
+	}
+	/**
+	 * 修改流水单信息
+	 * @param tabSampleMatch
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value="/{sampleMatchId}/update",method=RequestMethod.POST)
+	public String update(TabSampleMatch tabSampleMatch, @RequestParam String sampleIdHide,
+			@RequestParam String mainName,@RequestParam String secondName, @RequestParam String length,
+			@RequestParam String pidHide,@RequestParam String newSample,@RequestParam String sampleId,
+			@RequestParam String jiNum, MultipartFile advFile, @RequestParam String brandId,
+			@RequestParam String columnType, @RequestParam String currsampleDate,HttpServletRequest request){
+		HttpSession session = request.getSession();
+		TabUser tu = (TabUser)session.getAttribute("tabUser");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String sessionRealName = (String)session.getAttribute(Commons.SESSIONREALNAME);
+		
+		TabSample tabSample = new TabSample();
+		if(StrUtils.isNotEmptyStr(newSample)) {
+			if(newSample.equals("1")) { //1.代表新增样本
+				String sampleIdNew = KeyGen.getADVId();
+				tabSample.setSampleId(sampleIdNew);
+				Map<String, String> map = UploadUtils.uploadSampleFile(advFile, "");
+				tabSample.setMainName(mainName);
+				tabSample.setFlag(1);
+				tabSample.setSecondName(secondName);
+				if(StrUtils.isNotEmptyStr(brandId)) {
+				    tabSample.setBrandId(Integer.parseInt(brandId));
+				}
+				tabSample.setPid("BTV1");
+				if(StrUtils.isNotEmptyStr(jiNum)) {
+					tabSample.setJiNum(Integer.parseInt(jiNum));
+				} else {
+					tabSample.setJiNum(0);
+				}
+				tabSample.setCreaterName(sessionRealName);
+				tabSample.setCreateTime(new Timestamp(System.currentTimeMillis()));
+				tabSample.setColumnType(columnType);
+//				tabSample.setTapeNum(tapeNum);
+				tabSample.setLength(Integer.parseInt(length));
+//				tabSample.setLocation(location);
+//				tabSample.setSampleDate(sampleDate);
+//				tabSample.setAdvId(advId);
+				tabSample.setIsAdv(1);
+				tabSample.setFileAddr(map.get("fileAddr"));
+				tabSample.setFileNetAddr(map.get("fileNetAddr"));
+				tabSample.setExtFlag(0);
+				tabSampleService.insertTabSample(tabSample);
+			} else { //0.代表已存在的样本
+				tabSample = tabSampleService.selectObjById(sampleIdHide);
+			}
+			tabSampleMatch.setSampleId(tabSample.getSampleId());
+			tabSampleMatch.setIsAdv(tabSample.getIsAdv());
+			tabSampleMatch.setJiNum(tabSample.getJiNum());
+			tabSampleMatch.setTapeNum(tabSample.getTapeNum());
+			tabSampleMatch.setSampleDate(tabSample.getSampleDate());
+			tabSampleMatch.setColumnType(tabSample.getColumnType());
+			tabSampleMatch.setBrandId(tabSample.getBrandId());
+			if(StrUtils.isNotEmptyStr(pidHide)) {
+				tabSampleMatch.setPid(pidHide);
+			}
+			tabSampleMatch.setDeleteFlg(0);
+		}
+		
+		
+//		tabSampleMatch.setCreaterName(sessionRealName);
+//		tabSampleMatch.setCreateTime(tabSample.getCreateTime());
+		//将时间格式转化
+		String start = tabSampleMatch.getStartTime();
+		String end = tabSampleMatch.getEndTime();
+		try {
+//			Long lStart = new Long(sdf.parse(start).getTime());
+//			Long lEnd = new Long(sdf.parse(end).getTime());
+			Long lStart = TimeUtil.stringToTimestamp(currsampleDate + start, "yyyyMMddHHmmss");
+			Long lEnd = TimeUtil.stringToTimestamp(currsampleDate + end, "yyyyMMddHHmmss");
+			tabSampleMatch.setStartTime(lStart.toString());
+			tabSampleMatch.setEndTime(lEnd.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		int result = tabSampleMatchService.updateTabSampleMatch(tabSampleMatch);
+		/*记录操作日志 -- start*/
+		if(result > 0){
+			String objId = tabSampleMatch.getSampleMatchId().toString();
+			tabOperLogService.insertTabOperLog(Commons.UPDMATCH, tu.getUserName(), objId);
+		}
+		/*记录操作日志 -- end*/
+//		return "redirect:/tabSampleMatch/search/?pid="+pidSearch+"&start="+startSearch+"&end="+endSearch;
+		return "sampleMatch/addSampleMatchSuccess";
+	}
+	
+	/**
+	 * 按照业务习惯的时间格式，异步的计算结束时间
+	 * @param request
+	 * @param startTime  开始时间
+	 * @param length     时长
+	 * @return
+	 */
+	@RequestMapping(value="/ajaxGetLength",method=RequestMethod.POST)
+	public @ResponseBody String ajaxGetLength(HttpServletRequest request, @RequestParam String startTime, 
+			@RequestParam String endTime, @RequestParam String sampleDate, @RequestParam String lastDate){
+		
+		String reStr = "";
+		long startTimeLong = 0L;
+		long endTimeLong = 0L;
+		
+		startTimeLong = TimeUtil.stringToTimestamp(lastDate + startTime, "yyyyMMddHHmmss");
+		endTimeLong = TimeUtil.stringToTimestamp(sampleDate + endTime, "yyyyMMddHHmmss");
+		long lengthLong = (endTimeLong - startTimeLong) / 1000;
+//		long lengthLong = Long.parseLong(length)*1000;
+//		
+//		endTimeLong = startTimeLong + lengthLong;
+//		endTimeStr = TimeUtil.timestampToString(new Timestamp(endTimeLong));
+//		reStr += "{\"endtime\":"+"\"" + endTimeStr +"\""+"}";
+		reStr += "{\"length\":"+"\"" + lengthLong +"\""+"}";
+		return reStr;
+	}
+}

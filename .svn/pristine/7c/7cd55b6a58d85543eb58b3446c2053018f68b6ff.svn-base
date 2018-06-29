@@ -1,0 +1,244 @@
+<%@ page language="java" contentType="text/html; charset=utf-8"
+    pageEncoding="utf-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title></title>
+<link rel="stylesheet" href="<%=request.getContextPath()%>/resources/css/style.css">
+<style type="text/css">
+	.w-con{     width:100%; height: 647px; padding-top:8px; background:#fff; overflow:hidden;}
+  	.w-con ul{ list-style:none;width:1150px;}
+	.w-con ul li{ float:left; color:#000; font-size:18px; margin-left:15px; padding-bottom:20px;width:1150px;}
+	.w-con label,.w-con select,.w-con input{ float:left;}
+	.w-con button{ padding:3px 20px; }
+	.w-f-nr input{ margin-top:6px;}
+	.w-f-nr label{ margin:0 20px 0 5px;}
+	.w-f-nr .flo{ float:left;}
+	.w-f-nr .chech{ width:710px;}
+	.w-con table{border-collapse:collapse; width:100%; margin-top:10px;}
+	.w-con table, .w-con td,.w-con th{border:1px solid #808080; text-align:center; padding:5px 0px; font-size:17px;}
+	.w-con tbody td{font-size:14px;}
+	.w-con .ym{ float:right; margin-top:8px;}
+	.w-con .ym span{ padding:0px 13px; cursor:pointer;}
+
+</style>
+<script src="<%=request.getContextPath()%>/resources/calendar/WdatePicker.js" type="text/javascript"></script>
+<script src="<%=request.getContextPath()%>/resources/js/jquery-1.7.2.min.js"></script>
+</head>
+<body>
+	<div style="height:20px;width:870px;float:left;margin-bottom:10px;">
+			<span>当前位置 >> 广告查询</span>
+	</div>
+	<div class="w-con clearfix" style="overflow-x:auto;overflow-y:auto;height:950px;">
+		<ul>
+			<form action="" id="searchForm" method="post">
+<%-- 				<input type="hidden" name="currPage" id="currPage" value="${page.currPage }"/> --%>
+				<input type="hidden" id="columnTypehide" value="${columnType }"/>
+<%-- 				<input type="hidden" id="largeTypehide" value="${largeType }"/> --%>
+<%-- 				<input type="hidden" id="middleTypehide" value="${middleType }"/> --%>
+<%-- 				<input type="hidden" id="tinyTypehide" value="${tinyType }"/> --%>
+				<li>
+					
+					<ul>
+						<li style="width:210px;float:left;">
+							<label>主名称:</label><input type="text" id="mainName" name="mainName" value="${mainName }" />
+						</li>
+						<li style="width:210px;float:left;">
+							<label>副名称:</label><input type="text" id="secondName" name="secondName" value="${secondName }" />
+						</li>
+						<li style="width:230px;float:left;">
+							<label>广告部Id:</label><input type="text" id="advId" name="advId" value="${advId }" />									
+						</li>
+						<li style="width:210px;float:left;">
+							<label>分类:</label>
+							<select name="columnType" id="columnType" >
+								<option value="">请选择</option>
+								<option value="adv">广告</option>
+								<option value="xc">宣传片</option>
+								<option value="jm">节目</option>
+							</select>
+						</li>
+					</ul>
+					<ul>
+						<li style="width:450px;float:left;margin-left:15px;">
+			            	<label>入库时间:</label>
+			            	<input type="text" name="start" id="start" class="Wdate" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd',readOnly:true})" value="${start }" />
+			            	<label style="margin-left:10px;margin-right:10px;">至</label>
+			            	<input type="text" name="end" id="end" class="Wdate" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd',readOnly:true})" value="${end }"/>
+			            </li>
+			            <li style="width:30px;float:left;margin-left:15px;">
+							<input type="button" value="查询" onclick="search()" />
+						</li>
+						<li style="width:30px;float:left;margin-left:15px;">
+							<input type="button" value="新增" onclick="add()" />
+						</li>
+						<li style="width:30px;float:left;margin-left:15px;">
+							<input type="button" value="批量删除" onclick="deleteMany()" />
+						</li>
+					</ul>
+				</li>
+				
+				
+				
+			</form>
+			<li class="w-f-nr clearfix">
+				<div class="flo">显示内容：</div>
+				<div class="flo chech clearfix">
+					<input type="checkbox" id="check_tdflag" checked="checked" onclick="showOrNot('check_tdflag')"/><label>标识</label>
+			    	<input type="checkbox" id="check_tdsampleId" checked="checked" onclick="showOrNot('check_tdsampleId')"/><label>广告ID</label>
+<!-- 			    	<input type="checkbox" id="check_tdpid" checked="checked" onclick="showOrNot('check_tdpid')"/><label>频道</label> -->
+			    	<input type="checkbox" id="check_tdmainName" checked="checked" onclick="showOrNot('check_tdmainName')"/><label>主标题</label>
+			    	<input type="checkbox" id="check_tdsecondName" checked="checked" onclick="showOrNot('check_tdsecondName')"/><label>副标题</label>
+			    	<input type="checkbox" id="check_tdlength" checked="checked" onclick="showOrNot('check_tdlength')"/><label>时长</label>
+			    	<input type="checkbox" id="check_tdcolmunType" checked="checked" onclick="showOrNot('check_tdcolmunType')"/><label>栏目类别</label>
+<!-- 			    	<input type="checkbox" id="check_tdcreaterName" checked="checked" onclick="showOrNot('check_tdcreaterName')"/><label>录入人</label> -->
+			    	<input type="checkbox" id="check_tdcreateTime" checked="checked" onclick="showOrNot('check_tdcreateTime')"/><label>录入日期</label>
+				</div>
+			</li>
+			<table>
+            	<thead>
+				  <tr>
+				  <th><input type="checkbox" id="quanxuan" onclick="quanxuan()"></input></th>				  
+				  <th nowrap="nowrap">样本ID</th>
+				  <th nowrap="nowrap" name="tdsampleId">广告部ID</th>
+				  <th nowrap="nowrap" name="tdmainName">主标题</th>
+				  <th nowrap="nowrap" name="tdsecondName">副标题</th>
+				  <th nowrap="nowrap" name="tdlength">时长(秒)</th>
+<!-- 				  <th nowrap="nowrap" name="tdpid">频道</th> -->
+				  <th nowrap="nowrap" name="tdcolmunType">栏目类别</th>
+				  <th nowrap="nowrap" name="tdcreaterName">录入人</th>
+				  <th nowrap="nowrap" name="tdcreateTime">录入日期</th>
+				  <th nowrap="nowrap">操作</th>
+				</tr>
+				</thead>
+				<tbody>
+					<c:forEach items="${sampleList}" var="p">
+					<tr>
+						<td nowrap="nowrap">
+							<input type="checkbox" id="${p.sampleId }" name="chxbx" />
+						</td>
+						<td nowrap="nowrap">${p.sampleId }</td>
+						<td nowrap="nowrap" name="tdsampleId">${p.advId }</td>
+					    <td nowrap="nowrap" name="tdmainName"><a href="<%=request.getContextPath()%>/tabSample/${p.sampleId }/getAdvById/" target="_blank">${p.mainName }</a></td>
+						<td nowrap="nowrap" name="tdsecondName">${p.secondName }</td>
+						<td nowrap="nowrap" name="tdlength">${p.length }</td>
+<%-- 						<td nowrap="nowrap" name="tdjiNum">${p.jiNum }</td> --%>
+<%-- 						<td nowrap="nowrap" name="tdsampleDate">${p.sampleDate }</td> --%>
+<%-- 						<td nowrap="nowrap" name="tdpid">${p.pid }</td> --%>
+<%-- 						<td nowrap="nowrap" name="tdtapeNum">${p.tapeNum }</td> --%>
+						<td nowrap="nowrap" name="tdcolmunType">
+							<c:if test="${p.columnType == 'adv' }">广告</c:if>
+							<c:if test="${p.columnType == 'xc' }">宣传片</c:if>
+							<c:if test="${p.columnType == 'jm' }">节目</c:if>
+						</td>
+						<td nowrap="nowrap" name="tdcreaterName">${p.createrName }</td>
+						<td nowrap="nowrap" name="tdcreateTime"><fmt:formatDate value="${p.createTime }" pattern="yyyy-MM-dd HH:mm:ss" /></td>
+						<td nowrap="nowrap">
+							<a href="<%=request.getContextPath()%>/tabSample/${p.sampleId}/update?columnType=${columnType }&mainNameSearch=${mainName }&secondNameSearch=${secondName }&startSearch=${start }&endSearch=${end }&advIdSearch=${advId}">修改</a>
+							<a href="#" onclick="deleteOne('${p.sampleId}')">删除</a>
+						</td>
+					</tr>
+				</c:forEach>
+				</tbody>
+			</table>
+			<div class="ym">
+				<span>共${totalCount }条</span>
+<%--             	<span>共${page.pageNum }页</span> --%>
+<%--             	<span>当前第${page.currPage }页</span> --%>
+<!--             	<span><a href="javascript:;" onclick="prePage()">上一页</a></span> -->
+<!--             	<span><a href="javascript:;" onclick="nextPage()">下一页</a></span> -->
+            </div>
+		</ul>
+	</div>
+	
+<script language="javascript">
+	window.onload = onloadAction;
+	function onloadAction(){
+		var columnType = $("#columnTypehide").val();
+  	    $("#columnType").find("option[value='"+columnType+"']").attr("selected",true);
+		/*
+		var largeType = $("#largeTypehide").val();
+		$("#largeType").find("option[value='"+largeType+"']").attr("selected",true);
+		
+		var middleType = $("#middleTypehide").val();
+		$("#middleLi").find("option[value='"+middleType+"']").attr("selected",true);
+		
+		var tinyType = $("#tinyTypehide").val();
+		$("#tinyLi").find("option[value='"+tinyType+"']").attr("selected",true);
+		*/
+	}
+    function search(){
+    	$("#searchForm").attr("action", "<%=request.getContextPath()%>/tabSample/searchAdv");
+    	$("#searchForm").submit();
+    }
+  	function add(){
+  		var columnType = $("#columnType").val();
+  		var mainName = $("#mainName").val();
+  		var secondName = $("#secondName").val();
+  		var start = $("#start").val();
+  		var end = $("#end").val();
+  		var advId = $("#advId").val();
+  		window.location.href="<%=request.getContextPath()%>/tabSample/add?columnTypeSearch="+columnType
+  				+"&mainNameSearch="+mainName+"&secondNameSearch="+secondName+"&startSearch="+start+"&endSearch="+end+"&advIdSearch="+advId;
+  	}
+  	function deleteOne(id){
+  		var mainName = $("#mainName").val();
+  		var secondName = $("#secondName").val();
+    	var start = $("#start").val();
+    	var end = $("#end").val();
+    	var columnType = $("#columnType").val();
+    	var advId = $("#advId").val();
+  		if(confirm("确定要删除该条数据吗?")){
+  			window.location.href="<%=request.getContextPath()%>/tabSample/"+id+"/delete?columnTypeSearch="
+  					+columnType+"&mainNameSearch="+mainName+"&secondName="+secondName+"&startSearch="+start
+  					+"&endSearch="+end+"&advIdSearch="+advId;	
+  		}
+  	}
+  	function showOrNot(checkid){
+  		var idArr = checkid.split("_");
+  		var tdid = idArr[1];
+  		if($("#"+checkid).attr("checked") == "checked"){
+  			$("#"+checkid).attr("checked", "checked");
+  			$("th[name='"+tdid+"']").show();
+  			$("td[name='"+tdid+"']").show();
+  		}else{
+  			$("#"+checkid).removeAttr("checked");
+  			$("th[name='"+tdid+"']").hide();
+  			$("td[name='"+tdid+"']").hide();
+  		}
+  	}
+    function quanxuan(){
+    	if ($("#quanxuan").attr("checked")) {
+        	$("input[name='chxbx']").attr("checked", true);
+    	} else {  
+    		$("input[name='chxbx']").attr("checked", false);
+    	}
+    }
+    function deleteMany(){
+    	var mainName = $("#mainName").val();
+    	var secondName = $("#secondName").val();
+    	var start = $("#start").val();
+    	var end = $("#end").val();
+    	var columnType = $("#columnType").val();
+    	var advId = $("#advId").val();
+  		var ids = "";
+  		$("input[name='chxbx']:checked").each(function(){
+	        ids += $(this).attr("id")+",";
+  		});
+  		if(ids == ""){
+  			alert("请选择至少1条记录");
+  			return false;
+  		}
+  		ids = ids.substring(0,(ids.length-1));
+  		if(confirm("确定要批量删除吗?")){
+  			window.location.href="<%=request.getContextPath()%>/tabSample/batchDelete?ids="+ids
+  					+"&mainNameSearch="+mainName+"&secondNameSearch="+secondName+"&startSearch="+start+"&endSearch="+end
+  					+"&columnTypeSearch="+columnType+"&advIdSearch="+advId;
+  		}
+  	}
+</script>
+</body>
+</html>

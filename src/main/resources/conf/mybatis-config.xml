@@ -5,15 +5,16 @@ PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
 <configuration>
         <!-- 命名空间 -->
     <typeAliases>
-         <typeAlias alias="tabUser" type="com.btvpyp.model.TabUser"/>
-         <typeAlias alias="tabSample" type="com.btvpyp.model.TabSample"/>
-         <typeAlias alias="tabSampleMatch" type="com.btvpyp.model.TabSampleMatch"/>
-         <typeAlias alias="tabAdvTypes" type="com.btvpyp.model.TabAdvTypes"/>
-         <typeAlias alias="tabOperLog" type="com.btvpyp.model.TabOperLog"/>
-         <typeAlias alias="tabBroadBack" type="com.btvpyp.model.TabBroadBack"/>
-         <typeAlias alias="tabBroadBackGD" type="com.btvpyp.model.gd.TabBroadBackGD"/>
-         <typeAlias alias="tabMenu" type="com.btvpyp.model.TabMenu"/>
-         <typeAlias alias="tabBfdLoad" type="com.btvpyp.model.TabBfdLoad"/>
+         <typeAlias alias="tabUser" type="com.btvpyp.system.model.TabUser"/>
+         <typeAlias alias="tabSample" type="com.btvpyp.sample.model.TabSample"/>
+         <typeAlias alias="tabSampleMatch" type="com.btvpyp.sampleMatch.model.TabSampleMatch"/>
+         <typeAlias alias="tabAdvTypes" type="com.btvpyp.advType.model.TabAdvTypes"/>
+         <typeAlias alias="tabOperLog" type="com.btvpyp.system.model.TabOperLog"/>
+         <typeAlias alias="tabBroadBack" type="com.btvpyp.broadBack.model.TabBroadBack"/>
+         <typeAlias alias="tabBroadBackGD" type="com.btvpyp.broadBack.model.TabBroadBackGD"/>
+         <typeAlias alias="tabMenu" type="com.btvpyp.system.model.TabMenu"/>
+         <typeAlias alias="tabBfdLoad" type="com.btvpyp.broadBack.model.TabBfdLoad"/>
+         <typeAlias alias="tabDetail" type="com.btvpyp.detail.model.TabDetail"/>
     </typeAliases>
  
     <!-- 映射map -->

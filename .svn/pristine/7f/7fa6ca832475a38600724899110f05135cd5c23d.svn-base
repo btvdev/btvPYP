@@ -1,0 +1,119 @@
+package com.btvpyp.httpInterface;
+/**
+ * 供外部调用接口的集中控制器类
+ * author : gaobo
+ * create : 2017-11-21
+ */
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.btvpyp.broadBack.model.ProgramPieceBackVO;
+import com.btvpyp.broadBack.model.TabBroadBack;
+import com.btvpyp.broadBack.service.TabBroadBackService;
+import com.btvpyp.detail.service.TabDetailService;
+import com.btvpyp.model.xml.MatchResultXmlBean;
+import com.btvpyp.sample.model.TabSample;
+import com.btvpyp.sample.service.TabSampleService;
+import com.btvpyp.sampleMatch.model.TabSampleMatch;
+import com.btvpyp.sampleMatch.service.TabSampleMatchService;
+import com.btvpyp.utils.Commons;
+import com.btvpyp.utils.LogUtil;
+import com.btvpyp.utils.MathUtil;
+import com.btvpyp.utils.TimeUtil;
+import com.btvpyp.utils.XmlUtils;
+
+@Controller
+public class InterfaceController {
+	@Autowired
+	private TabSampleService tabSampleService;
+	@Autowired
+	private TabSampleMatchService tabSampleMatchService;
+	@Autowired
+	public TabDetailService tabDetailService;
+	@Autowired
+	private TabBroadBackService tabBroadBackService;
+	
+	/**
+	 * 自动化拆条结果回传接口
+	 * @param videoPiece
+	 * @param request
+	 * @return
+	 */
+	@RequestMapping(value="/add/videoPiece/",method=RequestMethod.POST,produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public String addVideoPieceData(@RequestBody String videoPiece, HttpServletRequest request) {
+		//将接口传过来的http请求body记录到静态文件中做备份  --start
+		String accessTime = TimeUtil.getTimeYMdHMS();
+		String saveUrl = Commons.PIECELOGDIR + TimeUtil.getTimeDir() + "/";
+		String logFileName = "piecelog_" + accessTime + ".txt";
+		LogUtil.saveSampleJson(videoPiece, saveUrl, logFileName);
+		//将接口传过来的http请求body记录到静态文件中做备份  --end
+		
+		//通过JSONOBJECT将接口中的json实例化为VO，然后转化成对应的播返单对象赋值，最终更新数据中的对应记录 --start
+		JSONObject jo = JSONObject.fromObject(videoPiece);
+		ProgramPieceBackVO ppbv = (ProgramPieceBackVO)jo.toBean(jo, ProgramPieceBackVO.class);
+		TabBroadBack tbb = new TabBroadBack();
+		tbb.setBroadBackId(Integer.parseInt(ppbv.getData()));
+		tbb.setChannel(ppbv.getPid());
+		String fileAddr = ppbv.getFileAddr();
+		tbb.setFileAddr(fileAddr);
+		tbb.setCuted(2);
+		String videoUrl = fileAddr.replace(Commons.DHSAVE, Commons.DOMAINADDR);
+		tbb.setVideoUrl(videoUrl);
+		tabBroadBackService.updateTabBroadBack(tbb);
+		//通过JSONOBJECT将接口中的json实例化为VO，然后转化成对应的播返单对象赋值，最终更新数据中的对应记录 --end
+		return "success";
+	}
+	
+	/**
+	 * 识别结果回传接口(对接当虹系统)
+	 * @param tabSampleMatchs
+	 * @return
+	 */
+	@RequestMapping(value="/add/samplematch/",method=RequestMethod.POST,produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public String addMatchData(@RequestBody String matchArray, HttpServletRequest request) {
+		//将接口传过来的http请求body记录到静态文件中做备份  --start
+		String accessTime = TimeUtil.getTimeYMdHMS();
+		String saveUrl = Commons.MATCHLOGDIR + TimeUtil.getTimeDir() + "/";
+		String logFileName = "matchlog_" + accessTime + ".txt";
+		LogUtil.saveSampleJson(matchArray, saveUrl, logFileName);
+		//将接口传过来的http请求body记录到静态文件中做备份  --end
+		//将接口数据转化成对象数组并入库
+		try {
+			JSONArray ja = JSONArray.fromObject(matchArray);
+			int size = ja.size();
+			if(size > 0) {
+				for(int i=0;i<size;i++){
+					JSONObject jsonObj = ja.getJSONObject(i);
+					TabSampleMatch tsm = (TabSampleMatch) jsonObj.toBean(jsonObj, TabSampleMatch.class);
+					if(null != tsm) {
+						tsm.setCreaterName("auto");
+						Integer result = tabSampleMatchService.insertTabSampleMatch(tsm);
+						//向详单表同步
+						tabDetailService.insertTabDetail(tsm);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return "success";
+	}
+}

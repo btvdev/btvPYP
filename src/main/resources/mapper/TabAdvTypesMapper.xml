@@ -2,8 +2,8 @@
 <!DOCTYPE mapper
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.btvpyp.dao.TabAdvTypesDao">
-	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabAdvTypes" >
+<mapper namespace="com.btvpyp.advType.dao.TabAdvTypesDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.advType.model.TabAdvTypes" >
     	<id column="typeId" property="typeId" jdbcType="INTEGER" />
     	<result column="typeName" property="typeName" jdbcType="VARCHAR" />
     	<result column="level" property="level" jdbcType="INTEGER" />

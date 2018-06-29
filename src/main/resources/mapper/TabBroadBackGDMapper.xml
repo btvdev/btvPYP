@@ -2,8 +2,8 @@
 <!DOCTYPE mapper
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.btvpyp.dao.gd.TabBroadBackGDDao">
-	<resultMap id="BaseResultMap" type="com.btvpyp.model.gd.TabBroadBackGD" >
+<mapper namespace="com.btvpyp.broadBack.dao.TabBroadBackGDDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.broadBack.model.TabBroadBackGD" >
     	<id column="broadBackId" property="broadBackId" jdbcType="INTEGER" />
     	<result column="jmName" property="jmName" jdbcType="VARCHAR"/>
     	<result column="starttime" property="starttime" jdbcType="VARCHAR"/>

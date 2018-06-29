@@ -1,0 +1,222 @@
+package com.btvpyp.httpInterface;
+
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.btvpyp.detail.service.TabDetailService;
+import com.btvpyp.model.xml.MatchResultXmlBean;
+import com.btvpyp.sample.model.TabSample;
+import com.btvpyp.sample.service.TabSampleService;
+import com.btvpyp.sampleMatch.model.TabSampleMatch;
+import com.btvpyp.sampleMatch.service.TabSampleMatchService;
+import com.btvpyp.utils.Commons;
+import com.btvpyp.utils.LogUtil;
+import com.btvpyp.utils.MathUtil;
+import com.btvpyp.utils.TimeUtil;
+import com.btvpyp.utils.XmlUtils;
+
+@Controller
+public class InterfaceController {
+	@Autowired
+	private TabSampleService tabSampleService;
+	@Autowired
+	private TabSampleMatchService tabSampleMatchService;
+	@Autowired
+	public TabDetailService tabDetailService;
+	
+	/**
+	 * 匹配回传接口(新版，对接当虹)
+	 * @param tabSampleMatchs
+	 * @return
+	 */
+	@RequestMapping(value="/add/samplematch/",method=RequestMethod.POST,produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public String addMatchData(@RequestBody String matchArray, HttpServletRequest request) {
+		//@RequestBody TabSampleMatch[] tabSampleMatchs
+		//将接口传过来的http请求body记录到静态文件中做备份  --start
+		String accessTime = TimeUtil.getTimeYMdHMS();
+		String saveUrl = Commons.MATCHLOGDIR + TimeUtil.getTimeDir() + "/";
+		String logFileName = "matchlog_" + accessTime + ".txt";
+		LogUtil.saveSampleJson(matchArray, saveUrl, logFileName);
+		//将接口传过来的http请求body记录到静态文件中做备份  --end
+		
+		//将接口数据转化成对象数组并入库
+		try {
+			JSONArray ja = JSONArray.fromObject(matchArray);
+			int size = ja.size();
+			if(size > 0) {
+				for(int i=0;i<size;i++){
+					JSONObject jsonObj = ja.getJSONObject(i);
+					TabSampleMatch tsm = (TabSampleMatch) jsonObj.toBean(jsonObj, TabSampleMatch.class);
+					if(null != tsm) {
+						Integer result = tabSampleMatchService.insertTabSampleMatch(tsm);
+						//向详单表同步
+						tabDetailService.insertTabDetail(tsm);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		return "success";
+	}
+	/**.
+	 * 匹配结果回传接口(旧版北大)
+	 * @param sampleId  样本id
+	 * @param pid
+	 * @param starttime
+	 * @param endtime
+	 * @return
+	 */
+	@RequestMapping(value="/add/samplematch/{sampleId}/{pid}/{starttime}/{endtime}",method=RequestMethod.POST,produces = "application/json;charset=UTF-8")
+	@ResponseBody
+	public Map<String,Object> sampleMatch(@PathVariable String sampleId,@PathVariable String pid,@PathVariable long starttime,@PathVariable long endtime){
+		
+		Map<String,Object> map=new HashMap<String,Object>();
+		
+		//读取匹配结果，并新增一条流水单记录---start
+		TabSampleMatch tabSampleMatch=new TabSampleMatch();
+		tabSampleMatch.setSampleId(sampleId);
+//		pid = pids.get(pid);
+		tabSampleMatch.setPid(pid);
+		
+		String kaishi = starttime / 1000 + "";
+		String jieshu = endtime / 1000 + "";
+		tabSampleMatch.setStartTime(kaishi);
+		tabSampleMatch.setEndTime(jieshu);
+		//时长改为结束时间与开始时间自动做差的结果
+		
+		//时长计算方法：做差然后四舍五入，比如：29.8秒 ---> 30秒
+		Long c = Long.parseLong(jieshu) - Long.parseLong(kaishi);
+		String len = MathUtil.divisionRound(c, 1000d, "%.0f");
+		tabSampleMatch.setLength(Integer.parseInt(len));
+		tabSampleMatch.setIsAdv(1);//1：广告样本 0：非广告
+		tabSampleMatch.setCreaterName("auto");
+		tabSampleMatch.setCreateTime(new Timestamp(new Date().getTime()));
+		
+		/*****2017-06-19*** 流水单表增加了字段 */
+		TabSample ts = new TabSample();
+		ts = tabSampleService.selectObjById(sampleId);
+		if(null != ts){
+			tabSampleMatch.setMainName(ts.getMainName());
+			tabSampleMatch.setSecondName(ts.getSecondName());
+			tabSampleMatch.setJiNum(ts.getJiNum());
+			tabSampleMatch.setSampleDate(ts.getSampleDate());
+			tabSampleMatch.setTapeNum(ts.getTapeNum());
+			tabSampleMatch.setColumnType(ts.getColumnType());
+		}
+		/*****2017-06-19****/
+		Integer result = tabSampleMatchService.insertTabSampleMatch(tabSampleMatch);
+		//读取匹配结果，并新增一条流水单记录---end
+		
+		//写入日志文件---start
+		MatchResultXmlBean mrxb = new MatchResultXmlBean();
+		mrxb.setSampleid(sampleId);
+		mrxb.setPid(pid);
+		mrxb.setStarttime(starttime + "");
+		mrxb.setEndtime(endtime + "");
+		mrxb.setMatchtime(TimeUtil.getCurrentTime());
+		XmlUtils.createMatchXml(mrxb);
+		//写入日志文件---end
+		
+		map.put("statusCode", "0");
+		map.put("message", "推送成功");
+		return map;	
+	}
+	
+	
+	
+	//将频道代号对应关系声明为静态成员变量
+//	private static Map<String, String> pids = new HashMap<String, String>(){
+//		private static final long serialVersionUID = 1L;
+//		{
+//			put("289_1", "BTV1");
+//			put("289_2", "BTV2");
+//			put("289_3", "BTV3");
+//			put("289_4", "BTV4");
+//			put("289_5", "BTV5");
+//			put("289_6", "BTV6");
+//			put("289_7", "BTV7");
+//			put("289_8", "BTV8");
+//			put("289_9", "BTV9");
+//			put("289_10", "BTV10");
+//			put("289_11", "BTV11");
+//		}
+//	};
+	//(北大)
+//	@RequestMapping(value="/add/samplematch/{sampleId}/{pid}/{starttime}/{endtime}",method=RequestMethod.POST,produces = "application/json;charset=UTF-8")
+//	@ResponseBody
+//	public Map<String,Object> sampleMatch_bak(@PathVariable String sampleId,@PathVariable String pid,@PathVariable long starttime,@PathVariable long endtime){
+//		
+//		Map<String,Object> map=new HashMap<String,Object>();
+//		
+//		//读取匹配结果，并新增一条流水单记录---start
+//		TabSampleMatch tabSampleMatch=new TabSampleMatch();
+//		tabSampleMatch.setSampleId(sampleId);
+//		pid = pids.get(pid);
+//		tabSampleMatch.setPid(pid);
+//		
+//		//时长改为结束时间与开始时间自动做差的结果
+//		
+//		//时长计算方法：做差然后四舍五入，比如：29.8秒 ---> 30秒
+//		Long now = System.currentTimeMillis();
+//		String jieshu = now + "";
+//		Long c = (endtime - starttime) / 90000;
+//		String kaishi = now - (endtime - starttime) / 90 + "";
+//		String len = MathUtil.divisionRound(c, 1d, "%.0f");
+//		
+//		tabSampleMatch.setStartTime(kaishi);
+//		tabSampleMatch.setEndTime(jieshu);
+//		
+//		tabSampleMatch.setLength(Integer.parseInt(len));
+//		tabSampleMatch.setIsAdv(1);//1：广告样本 0：非广告
+//		tabSampleMatch.setCreaterName("auto");
+//		tabSampleMatch.setCreateTime(new Timestamp(new Date().getTime()));
+//		
+//		/*****2017-06-19*** 流水单表增加了字段 */
+//		TabSample ts = new TabSample();
+//		ts = tabSampleService.selectObjById(sampleId);
+//		if(null != ts){
+//			tabSampleMatch.setMainName(ts.getMainName());
+//			tabSampleMatch.setSecondName(ts.getSecondName());
+//			tabSampleMatch.setJiNum(ts.getJiNum());
+//			tabSampleMatch.setSampleDate(ts.getSampleDate());
+//			tabSampleMatch.setTapeNum(ts.getTapeNum());
+//			tabSampleMatch.setColumnType(ts.getColumnType());
+//		}
+//		/*****2017-06-19****/
+//		Integer result = tabSampleMatchService.insertTabSampleMatch(tabSampleMatch);
+//		//读取匹配结果，并新增一条流水单记录---end
+//		
+//		//写入日志文件---start
+//		MatchResultXmlBean mrxb = new MatchResultXmlBean();
+//		mrxb.setSampleid(sampleId);
+//		mrxb.setPid(pid);
+//		mrxb.setStarttime(starttime + "");
+//		mrxb.setEndtime(endtime + "");
+//		mrxb.setMatchtime(TimeUtil.getCurrentTime());
+//		XmlUtils.createMatchXml(mrxb);
+//		//写入日志文件---end
+//		
+//		map.put("statusCode", "0");
+//		map.put("message", "推送成功");
+//		return map;	
+//	}
+	
+}

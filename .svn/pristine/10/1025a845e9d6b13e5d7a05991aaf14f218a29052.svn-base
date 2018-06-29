@@ -1,0 +1,165 @@
+package com.btvpyp.utils;
+
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class TimeUtil {
+	
+	//常用于文件夹创建的日期离散
+	public static String getTimeDir(){
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		String dir = sdf.format(new Date());
+		return dir;
+	}
+	
+	public static String getTimeYMdHMS(){
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+		String timeString = sdf.format(new Date());
+		return timeString;
+	}
+	
+	//获取当前时间的标准格式
+	public static String getCurrentTime(){
+		SimpleDateFormat stime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String time = stime.format(new Date());
+		return time;
+	}
+	
+	public static String getMMdd(){
+		SimpleDateFormat stime = new SimpleDateFormat("MMdd");
+		String time = stime.format(new Date());
+		return time;
+	}
+	
+	/**
+	 * 获取昨天的日期
+	 * @return
+	 */
+	public static String getLastOneDay(){
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		long timestamp = System.currentTimeMillis();
+		long preday = timestamp - 1000*60*60*24;
+		return sdf.format(preday);
+	}
+	
+	/**
+	 * 获取明天的日期
+	 * @param curr 当时的日期，如2017-06-29
+	 * @return
+	 */
+	public static String getAfterOneDay(String curr){
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Long ts = null;
+		try {
+			ts = sdf.parse(curr).getTime();
+		}catch (ParseException e) {
+		    e.printStackTrace();
+		}
+		ts += 1000*60*60*24;
+		
+		return sdf.format(ts);
+	}
+	/**
+	 * 获取当前日期
+	 * @return
+	 */
+	public static String getCurrDay(){
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Long ts = System.currentTimeMillis();
+//		ts = sdf.parse(curr).getTime();
+		String currDay = sdf.format(ts);
+		return currDay;
+	}
+	
+	/**
+	 * 将日期字符串按照格式转化成时间戳
+	 * @param dateStr  日期字符串
+	 * @param format   格式
+	 * @return
+	 */
+	public static Long stringToTimestamp(String dateStr, String format){
+		SimpleDateFormat sdf = new SimpleDateFormat(format);
+		Long ts = null;
+		try {
+			ts = sdf.parse(dateStr).getTime();
+		}catch (ParseException e) {
+		    e.printStackTrace();
+		}
+		return ts;
+	}
+	/**
+	 * 将时间戳转换成字符串
+	 * @param ts
+	 * @return
+	 */
+	public static String timestampToString(Timestamp ts){
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String time = "";
+		time = sdf.format(ts);
+		return time;
+	}
+	
+	public static String timestampToString(String ts, String format){
+		SimpleDateFormat sdf = new SimpleDateFormat(format);
+		String time = "";
+		time = sdf.format(ts);
+		return time;
+	}
+	
+	/**
+	 * 根据字符串计算出秒数
+	 * 比如：00:20:00 得出结果：1200
+	 * @return
+	 */
+	public static int getSeconds(String time){
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String today = sdf.format(new Date());
+		String today1 = today + " " + time;
+		String today2 = today + " " + "00:00:00";
+		try {
+			long stamp1 = sdf1.parse(today1).getTime();
+			long stamp2 = sdf1.parse(today2).getTime();
+			long cha = stamp1 - stamp2;
+			
+			return (int)cha / 1000;
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+	/**
+	 * 将原有日期字符串按照某特定新类型转化成新格式的日期字符串
+	 * @param original  原字符串
+	 * @param oldFormat 原格式
+	 * @param newFormat 新格式
+	 * @return
+	 */
+	public static String changeStringTimeFormat(String original, String oldFormat, String newFormat) {
+		String newTime = "";
+		SimpleDateFormat sdfOld = new SimpleDateFormat(oldFormat);
+		SimpleDateFormat sdfNew = new SimpleDateFormat(newFormat);
+		Date date = null;
+		try {
+			date = sdfOld.parse(original);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		newTime = sdfNew.format(date);
+		return newTime;
+		/*
+		 * String c = changeStringTimeFormat("2018-05-05 18:00:00", "yyyy-MM-dd HH:mm:ss", "yyyyMMdd-HHmmss");
+		   System.out.println(c);
+		       输出结果为：20180505-180000
+		 * */
+	}
+	
+	
+	public static void main(String args[]){
+		String abc = getCurrDay();
+		System.out.println(abc);
+	}
+	
+}

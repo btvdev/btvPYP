@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.btvpyp.sampleMatch.dao.TabSampleMatchDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.sampleMatch.model.TabSampleMatch" >
+    	<id column="sampleMatchId" property="sampleMatchId" jdbcType="INTEGER" />
+    	<result column="sampleId" property="sampleId" jdbcType="VARCHAR" />
+    	<result column="pid" property="pid" jdbcType="VARCHAR" />
+    	<result column="startTime" property="startTime" jdbcType="VARCHAR" />
+    	<result column="endTime" property="endTime" jdbcType="VARCHAR" />
+    	<result column="isAdv" property="isAdv" jdbcType="INTEGER" />
+    	<result column="advId" property="advId" jdbcType="VARCHAR" />
+    	<result column="createrName" property="createrName" jdbcType="VARCHAR" />
+    	<result column="createTime" property="createTime" jdbcType="DATE" />
+    	<result column="mainName" property="mainName" jdbcType="VARCHAR" />
+    	<result column="secondName" property="secondName" jdbcType="VARCHAR" />
+    	<result column="length" property="length" jdbcType="INTEGER" />
+    	<result column="jiNum" property="jiNum" jdbcType="INTEGER" />
+    	<result column="sampleDate" property="sampleDate" jdbcType="VARCHAR" />
+    	<result column="tapeNum" property="tapeNum" jdbcType="VARCHAR" />
+    	<result column="columnType" property="columnType" jdbcType="VARCHAR" />
+    	<result column="deleteFlg" property="deleteFlg" jdbcType="INTEGER" />
+    	
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+		sampleMatchId,sampleId,pid,startTime,endTime,isAdv,advId,createrName,createTime,
+		mainName,secondName,length,jiNum,sampleDate,tapeNum,columnType,deleteFlg
+    </sql>
+	
+	<select id="selectManuals" resultMap="BaseResultMap" >
+		select <include refid="Base_Column_List" /> 
+    	from tabSampleMatch
+    	where deleteFlg=0 
+    	and createrName <![CDATA[ <> ]]>'auto' 
+    	<if test="pid !=null and pid != ''">
+    		and pid = #{pid, jdbcType=VARCHAR}
+    	</if>
+    	<if test="start !=null and start != ''">
+    		and startTime <![CDATA[ >= ]]> #{start, jdbcType=VARCHAR}
+    	</if>
+    	<if test="end !=null and end != ''">
+    		and endTime <![CDATA[ <= ]]> #{end, jdbcType=VARCHAR}
+    	</if>
+	</select>
+	
+	<select id="selectTotalManuals" resultType="java.lang.Integer" parameterType="tabSampleMatch">
+		select count(sampleMatchId) 
+    	from tabSampleMatch
+    	where deleteFlg=0 
+    	and createrName <![CDATA[ <> ]]>'auto' 
+    	<if test="pid !=null and pid != ''">
+    		and pid = #{pid, jdbcType=VARCHAR}
+    	</if>
+    	<if test="start !=null and start != ''">
+    		and startTime <![CDATA[ >= ]]> #{start, jdbcType=VARCHAR}
+    	</if>
+    	<if test="end !=null and end != ''">
+    		and endTime <![CDATA[ <= ]]> #{end, jdbcType=VARCHAR}
+    	</if>
+	</select>
+	
+	<select id="selectTabSampleMatchs" resultMap="BaseResultMap" parameterType="tabSampleMatch">
+	    select 
+    	<include refid="Base_Column_List" /> 
+    	from tabSampleMatch
+    	where deleteFlg=0 
+    	<if test="pid !=null and pid != ''">
+    		and pid = #{pid, jdbcType=VARCHAR}
+    	</if>
+    	<if test="start !=null and start != ''">
+    		and startTime <![CDATA[ >= ]]> #{start, jdbcType=VARCHAR}
+    	</if>
+    	<if test="end !=null and end != ''">
+    		and endTime <![CDATA[ <= ]]> #{end, jdbcType=VARCHAR}
+    	</if>
+    	<if test="isAdv !=null">
+    		and isAdv = #{isAdv, jdbcType=INTEGER}
+    	</if>
+    	<if test="createrName !=null">
+    		and createrName = #{createrName, jdbcType=VARCHAR}
+    	</if>
+    	<if test="mainName !=null">
+    		and mainName like CONCAT('%', #{mainName}, '%')
+    	</if>
+    	<if test="sampleId !=null and sampleId !=''">
+    		and sampleId = #{sampleId, jdbcType=VARCHAR}
+    	</if>
+    	order by startTime asc
+    	<!-- 
+    	<if test="startIndex !=null and pageSize != null">
+    		limit #{startIndex, jdbcType=INTEGER}, #{pageSize, jdbcType=INTEGER}
+    	</if>
+    	 -->
+	</select>
+	
+	<select id="getOneById" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+		select 
+    	<include refid="Base_Column_List" /> 
+    	from tabSampleMatch
+    	where sampleMatchId=#{sampleMatchId, jdbcType=INTEGER}
+	</select>
+	
+	
+	<select id="selectTabSampleMatchsExcel" resultMap="BaseResultMap" parameterType="tabSampleMatch">
+	    select 
+    	<include refid="Base_Column_List" /> 
+    	from tabSampleMatch
+    	where deleteFlg=0
+    	<if test="pid !=null and pid != ''">
+    		and pid = #{pid, jdbcType=VARCHAR}
+    	</if>
+    	<if test="start !=null and start != ''">
+    		and startTime <![CDATA[ >= ]]> #{start, jdbcType=VARCHAR}
+    	</if>
+    	<if test="end !=null and end != ''">
+    		and startTime <![CDATA[ <= ]]> #{end, jdbcType=VARCHAR}
+    	</if>
+    	<if test="isAdv !=null">
+    		and isAdv = #{isAdv, jdbcType=INTEGER}
+    	</if>
+    	<if test="createrName !=null">
+    		and createrName = #{createrName, jdbcType=VARCHAR}
+    	</if>
+    	<if test="mainName !=null">
+    		and mainName = #{mainName, jdbcType=VARCHAR}
+    	</if>
+    	<if test="sampleId !=null and sampleId !=''">
+    		and sampleId = #{sampleId, jdbcType=VARCHAR}
+    	</if>
+    	order by startTime asc
+	</select>
+	
+	<update id="updateTabSampleMatch" parameterType="tabSampleMatch">
+		update tabSampleMatch
+		<set>
+			<if test="sampleId != null and sampleId !=''" >
+                sampleId = #{sampleId,jdbcType=VARCHAR},
+            </if>
+            <if test="advId != null and advId !=''" >
+                advId = #{advId,jdbcType=VARCHAR},
+            </if>
+            <if test="isAdv != null" >
+                isAdv = #{isAdv,jdbcType=VARCHAR},
+            </if>
+            <if test="jiNum != null" >
+                jiNum = #{jiNum,jdbcType=VARCHAR},
+            </if>
+            <if test="sampleDate != null and sampleDate !=''" >
+                sampleDate = #{sampleDate,jdbcType=VARCHAR},
+            </if>
+            <if test="tapeNum != null and tapeNum !=''" >
+                tapeNum = #{tapeNum,jdbcType=VARCHAR},
+            </if>
+            <if test="columnType != null and columnType !=''" >
+                columnType = #{columnType,jdbcType=VARCHAR},
+            </if>
+			<if test="mainName != null and mainName !=''" >
+                mainName = #{mainName,jdbcType=VARCHAR},
+            </if>
+            <if test="secondName != null and secondName !=''" >
+                secondName = #{secondName,jdbcType=VARCHAR},
+            </if>
+			<if test="pid != null and pid !=''" >
+                pid = #{pid,jdbcType=VARCHAR},
+            </if>	
+            <if test="startTime != null and startTime !=''" >
+                startTime = #{startTime,jdbcType=VARCHAR},
+            </if>
+            <if test="endTime != null and endTime !=''" >
+                endTime = #{endTime,jdbcType=VARCHAR},
+            </if>
+            <if test="length != null" >
+                length = #{length,jdbcType=INTEGER},
+            </if>
+        </set>
+        where sampleMatchId = #{sampleMatchId, jdbcType=INTEGER}
+	</update>
+	
+	<update id="deleteTabSampleMatch" parameterType="tabSampleMatch">
+        update tabSampleMatch
+        <set>
+            deleteFlg=1  
+        </set>
+        where sampleMatchId = #{sampleMatchId,jdbcType=INTEGER}
+    </update>
+    
+    <update id="updateMainName" parameterType="tabSampleMatch">
+    	update tabSampleMatch
+    	<set>
+    		<if test="secondName != null and secondName !=''" >
+                secondName=#{secondName, jdbcType=VARCHAR},
+            </if>
+            <if test="mainName != null and mainName !=''" >
+                mainName=#{mainName, jdbcType=VARCHAR}
+            </if>
+    	</set>
+    	where sampleId = #{sampleId,jdbcType=INTEGER}
+    </update>
+    
+    <select id="getTotalCount" resultType="java.lang.Integer" parameterType="tabSampleMatch">
+    	select count(sampleMatchId) from tabSampleMatch
+    	where deleteFlg=0 
+    	<if test="pid !=null and pid != ''">
+    		and pid = #{pid, jdbcType=VARCHAR}
+    	</if>
+    	<if test="start !=null and start != ''">
+    		and startTime <![CDATA[ >= ]]> #{start, jdbcType=INTEGER}
+    	</if>
+    	<if test="end !=null and start != ''">
+    		and startTime <![CDATA[ <= ]]> #{end, jdbcType=INTEGER}
+    	</if>
+    	<if test="isAdv !=null">
+    		and isAdv = #{isAdv, jdbcType=INTEGER}
+    	</if>
+    	<if test="createrName !=null">
+    		and createrName = #{createrName, jdbcType=VARCHAR}
+    	</if>
+    	<if test="mainName !=null">
+    		and mainName = #{mainName, jdbcType=VARCHAR}
+    	</if>
+    	<if test="sampleId !=null and sampleId !=''">
+    		and sampleId = #{sampleId, jdbcType=VARCHAR}
+    	</if>
+    </select>
+    
+    <insert id="insertTabSampleMatch" parameterType="tabSampleMatch" useGeneratedKeys="true" keyProperty="sampleMatchId">
+    	insert into tabSampleMatch(sampleMatchId,sampleId,pid,startTime,endTime,isAdv,advId,createrName,createTime,
+		mainName,secondName,length,jiNum,sampleDate,tapeNum,columnType,deleteFlg) 
+    	values(null, #{sampleId,jdbcType=VARCHAR},#{pid,jdbcType=VARCHAR},
+    	#{startTime,jdbcType=INTEGER},#{endTime,jdbcType=INTEGER},#{isAdv,jdbcType=INTEGER},#{advId,jdbcType=VARCHAR},
+    	#{createrName, jdbcType=VARCHAR},#{createTime,jdbcType=DATE},#{mainName,jdbcType=VARCHAR},
+    	#{secondName,jdbcType=VARCHAR},#{length,jdbcType=INTEGER},#{jiNum,jdbcType=INTEGER},
+    	#{sampleDate,jdbcType=VARCHAR},#{tapeNum,jdbcType=VARCHAR},#{columnType,jdbcType=VARCHAR},
+    	#{deleteFlg,jdbcType=INTEGER})
+    </insert>
+    
+</mapper>

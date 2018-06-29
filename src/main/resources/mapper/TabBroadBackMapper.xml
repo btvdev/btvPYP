@@ -2,8 +2,8 @@
 <!DOCTYPE mapper
  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.btvpyp.dao.TabBroadBackDao">
-	<resultMap id="BaseResultMap" type="com.btvpyp.model.TabBroadBack" >
+<mapper namespace="com.btvpyp.broadBack.dao.TabBroadBackDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.broadBack.model.TabBroadBack" >
     	<id column="broadBackId" property="broadBackId" jdbcType="INTEGER" />
     	<result column="jmName" property="jmName" jdbcType="VARCHAR"/>
     	<result column="starttime" property="starttime" jdbcType="VARCHAR"/>
@@ -11,11 +11,24 @@
     	<result column="length" property="length" jdbcType="INTEGER"/>
     	<result column="channel" property="channel" jdbcType="VARCHAR"/>
     	<result column="createTime" property="createTime" jdbcType="DATE"/>
+    	<result column="cuted" property="cuted" jdbcType="INTEGER"/>
+    	<result column="fileAddr" property="fileAddr" jdbcType="VARCHAR"/>
+    	<result column="videoUrl" property="videoUrl" jdbcType="VARCHAR"/>
+    	<result column="drew" property="drew" jdbcType="INTEGER"/>
     </resultMap>
     
     <sql id="Base_Column_List" >
-		broadBackId,jmName,starttime,endtime,length,channel,createTime
+		broadBackId,jmName,starttime,endtime,length,channel,createTime,cuted,fileAddr,videoUrl,drew
     </sql>
+    
+    <insert id="insertTabBroadBack" parameterType="tabBroadBack">
+    	insert into tabBroadBack 
+    	(broadBackId,jmName,starttime,endtime,length,channel,createTime,cuted,fileAddr,videoUrl,drew) 
+    	values
+    	(null, #{jmName, jdbcType=VARCHAR},#{starttime, jdbcType=VARCHAR},#{endtime, jdbcType=VARCHAR},
+    	#{length, jdbcType=INTEGER},#{channel, jdbcType=VARCHAR},#{createTime, jdbcType=DATE},#{cuted, jdbcType=INTEGER},
+    	#{fileAddr, jdbcType=VARCHAR},#{videoUrl, jdbcType=VARCHAR},#{drew, jdbcType=INTEGER})
+    </insert>
 
     <select id="selectTabBroadBacks" resultMap="BaseResultMap" parameterType="tabBroadBack">
     	select <include refid="Base_Column_List" />
@@ -52,14 +65,43 @@
     	</if>
     </select>
     
-    <insert id="insertTabBroadBack" parameterType="tabBroadBack">
-    	insert into tabBroadBack 
-    	(broadBackId,jmName,starttime,endtime,length,channel,createTime) 
-    	values
-    	(null, #{jmName, jdbcType=VARCHAR},#{starttime, jdbcType=VARCHAR},#{endtime, jdbcType=VARCHAR},
-    	#{length, jdbcType=INTEGER},#{channel, jdbcType=VARCHAR},#{createTime, jdbcType=DATE})
-    </insert>
-	    
+    <select id="selectUncuted" resultMap="BaseResultMap" parameterType="tabBroadBack">
+    	select <include refid="Base_Column_List" />
+    	from tabbroadback
+    	where 1=1
+    	<if test="cuted !=null">
+    		and cuted = #{cuted, jdbcType=INTEGER} 
+    	</if>
+    </select>
+    
+    <select id="selectUndrew" resultMap="BaseResultMap" parameterType="tabBroadBack">
+    	select <include refid="Base_Column_List" />
+    	from tabbroadback
+    	where 1=1
+    	<if test="drew !=null">
+    		and drew = #{drew, jdbcType=INTEGER} 
+    	</if>
+    </select>
+    
+    <update id="updateTabBroadBack" parameterType="tabBroadBack">
+    	update tabbroadback 
+    	<set>
+    		<if test="drew != null" >
+		    	drew = #{drew, jdbcType=INTEGER},
+	    	</if>
+	    	<if test="cuted != null" >
+		    	cuted = #{cuted, jdbcType=INTEGER},
+	    	</if>
+	    	<if test="fileAddr !=null and fileAddr != ''">
+	    		fileAddr = #{fileAddr, jdbcType=VARCHAR},
+	    	</if>
+	    	<if test="videoUrl !=null and videoUrl != ''">
+	    		videoUrl = #{videoUrl, jdbcType=VARCHAR},	
+	    	</if>
+    	</set>
+    	where broadBackId=#{broadBackId, jdbcType=INTEGER}
+    </update>
+    
     <delete id="batchRemove" parameterType="java.util.List">
     	delete from tabBroadBack 
     	where broadBackId in

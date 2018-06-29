@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.btvpyp.detail.dao.TabDetailDao">
+	<resultMap id="BaseResultMap" type="com.btvpyp.detail.model.TabDetail" >
+    	<id column="detailId" property="detailId" jdbcType="INTEGER" />
+    	<result column="programName" property="programName" jdbcType="VARCHAR"/>
+    	<result column="startTime" property="startTime" jdbcType="VARCHAR"/>
+    	<result column="endTime" property="endTime" jdbcType="VARCHAR"/>
+    	<result column="length" property="length" jdbcType="INTEGER"/>
+    	<result column="channel" property="channel" jdbcType="VARCHAR"/>
+    	<result column="sampleId" property="sampleId" jdbcType="VARCHAR"/>
+    	<result column="dataType" property="dataType" jdbcType="INTEGER"/>
+    	<result column="comments" property="comments" jdbcType="VARCHAR"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+		detailId,programName,startTime,endTime,length,channel,sampleId,dataType,comments
+    </sql>
+
+    <select id="selectTabDetails" resultMap="BaseResultMap" parameterType="tabDetail">
+    	select <include refid="Base_Column_List" />
+    	from tabDetail
+    	where 1=1
+    	<if test="channel !=null and channel != ''">
+    		and channel = #{channel, jdbcType=VARCHAR} 
+    	</if>
+    	
+    	<if test="start !=null and start != ''">
+    		and startTime <![CDATA[ >= ]]> #{start, jdbcType=VARCHAR}
+    	</if>
+    	<if test="end !=null and end != ''">
+    		and startTime <![CDATA[ <= ]]> #{end, jdbcType=VARCHAR}
+    	</if>
+    	<if test="dataType !=null">
+    		and dataType = #{dataType, jdbcType=INTEGER} 
+    	</if>
+    	order by startTime asc
+    </select>
+    
+    <insert id="insertTabDetail" parameterType="tabDetail">
+    	insert into tabDetail 
+    	(detailId,programName,startTime,endTime,length,channel,sampleId,dataType,comments) 
+    	values
+    	(null, #{programName, jdbcType=VARCHAR},#{startTime, jdbcType=VARCHAR},#{endTime, jdbcType=VARCHAR},
+    	#{length, jdbcType=INTEGER},#{channel, jdbcType=VARCHAR},#{sampleId, jdbcType=VARCHAR},#{dataType, jdbcType=INTEGER}, #{comments, jdbcType=VARCHAR})
+    </insert>
+</mapper>
